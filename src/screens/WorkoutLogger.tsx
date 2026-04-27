@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { db } from '../lib/db'
 import { useAuth } from '../contexts/AuthContext'
 import { getLastPerformance, suggestOverload, detectAndSavePRs } from '../lib/overload'
-import type { OverloadSuggestion, PRResult } from '../lib/overload'
+import type {OverloadSuggestion, PRResult } from '../lib/overload'
 
 interface Exercise {
   id: string
@@ -376,9 +376,15 @@ export default function WorkoutLogger({ onBack }: Props) {
       {/* Session header */}
       <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '12px 16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ fontSize: '16px', fontWeight: 700, color: '#111827' }}>Active workout</div>
-            <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '1px' }}>{formatElapsed(elapsed)} · {totalCompletedSets} sets done</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              onClick={() => { if (confirm('Leave workout? Progress will be lost.')) onBack() }}
+              style={{ padding: '6px 10px', borderRadius: '8px', border: '1px solid #e5e7eb', background: '#fff', fontSize: '13px', color: '#374151', cursor: 'pointer' }}
+            >← Back</button>
+            <div>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: '#111827' }}>Active workout</div>
+              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '1px' }}>{formatElapsed(elapsed)} · {totalCompletedSets} sets done</div>
+            </div>
           </div>
           <button
             onClick={finishWorkout}
@@ -426,9 +432,10 @@ export default function WorkoutLogger({ onBack }: Props) {
               <div style={{
                 margin: '0 16px 10px',
                 padding: '8px 12px',
+                borderRadius: '8px',
                 background: suggestions[se.exercise.id].action === 'increase' ? '#E1F5EE' : suggestions[se.exercise.id].action === 'reduce' ? '#fef2f2' : '#f3f4f6',
                 borderLeft: '3px solid ' + (suggestions[se.exercise.id].action === 'increase' ? '#1D9E75' : suggestions[se.exercise.id].action === 'reduce' ? '#ef4444' : '#9ca3af'),
-                borderRadius: '0 8px 8px 0',
+
               }}>
                 <div style={{ fontSize: '11px', fontWeight: 600, color: suggestions[se.exercise.id].action === 'increase' ? '#085041' : suggestions[se.exercise.id].action === 'reduce' ? '#991b1b' : '#374151', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                   {suggestions[se.exercise.id].action === 'increase' ? 'Progress' : suggestions[se.exercise.id].action === 'reduce' ? 'Reduce' : 'Maintain'}

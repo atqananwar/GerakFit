@@ -8,10 +8,11 @@ import ExerciseLibrary from './screens/ExerciseLibrary'
 import AnalyticsScreen from './screens/AnalyticsScreen'
 import ProfileScreen from './screens/ProfileScreen'
 import ProgramBuilder from './screens/ProgramBuilder'
-import { supabase } from './lib/supabase'
 import AISummaryScreen from './screens/AISummaryScreen'
+import DailyChallengeScreen from './screens/DailyChallengeScreen'
+import { supabase } from './lib/supabase'
 
-type AppState = 'loading' | 'auth' | 'onboarding' | 'dashboard' | 'workout' | 'exercises' | 'analytics' | 'profile' | 'programs' | 'ai_summary'
+type AppState = 'loading' | 'auth' | 'onboarding' | 'dashboard' | 'workout' | 'exercises' | 'analytics' | 'profile' | 'programs' | 'ai_summary' | 'daily_challenge'
 
 function AppContent() {
   const { user, loading: authLoading } = useAuth()
@@ -48,17 +49,19 @@ function AppContent() {
   if (appState === 'profile') return <ProfileScreen onBack={() => setAppState('dashboard')} />
   if (appState === 'programs') return <ProgramBuilder onBack={() => setAppState('dashboard')} />
   if (appState === 'ai_summary') return <AISummaryScreen onBack={() => setAppState('dashboard')} />
+  if (appState === 'daily_challenge') return <DailyChallengeScreen onBack={() => setAppState('dashboard')} />
   return (
-  <DashboardScreen
-    onStartWorkout={() => setAppState('workout')}
-    onOpenLibrary={() => setAppState('exercises')}
-    onOpenAnalytics={() => setAppState('analytics')}
-    onOpenProfile={() => setAppState('profile')}
-    onOpenPrograms={() => setAppState('programs')}
-    onOpenAISummary={() => setAppState('ai_summary')}
-    syncStatus={syncStatus}
-  />
-)
+    <DashboardScreen
+      onStartWorkout={() => setAppState('workout')}
+      onOpenLibrary={() => setAppState('exercises')}
+      onOpenAnalytics={() => setAppState('analytics')}
+      onOpenProfile={() => setAppState('profile')}
+      onOpenPrograms={() => setAppState('programs')}
+      onOpenAISummary={() => setAppState('ai_summary')}
+      onOpenDailyChallenge={() => setAppState('daily_challenge')}
+      syncStatus={syncStatus}
+    />
+  )
 }
 
 export default function App() {

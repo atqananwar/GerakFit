@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-type SyncStatus = 'idle' | 'syncing' | 'success' | 'error' | 'offline'
+import type { SyncStatus } from '../lib/sync'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -57,10 +57,11 @@ interface Props {
   onOpenProfile: () => void
   onOpenPrograms: () => void
   onOpenAISummary: () => void
+  onOpenDailyChallenge: () => void
   syncStatus?: SyncStatus
 }
 
-export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpenProfile, onOpenPrograms, onOpenAISummary, syncStatus }: Props) {
+export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpenProfile, onOpenPrograms, onOpenAISummary, onOpenDailyChallenge, syncStatus }: Props) {
   const { user } = useAuth()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>([])
@@ -242,6 +243,11 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
         {/* AI Summary */}
         <button onClick={onOpenAISummary} style={{ width: '100%', padding: '12px', borderRadius: '12px', background: card, border: `1px solid ${border}`, color: textPrimary, fontSize: '14px', fontWeight: 500, cursor: 'pointer', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           <span>✦</span> AI weekly summary
+        </button>
+
+        {/* Daily Challenge button */}
+        <button onClick={onOpenDailyChallenge} style={{ width: '100%', padding: '12px', borderRadius: '12px', background: '#111827', border: '1px solid #374151', color: '#f9fafb', fontSize: '14px', fontWeight: 500, cursor: 'pointer', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <span>⚔️</span> Daily Challenge
         </button>
 
         {/* Stats */}
