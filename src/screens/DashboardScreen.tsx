@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+type SyncStatus = 'idle' | 'syncing' | 'success' | 'error' | 'offline'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -30,7 +31,6 @@ interface PR {
 interface WeeklyStats {
   sessionsThisWeek: number
   targetDays: number
-  muscleGroups: string[]
 }
 
 const NAV_ITEMS = [
@@ -56,17 +56,26 @@ interface Props {
   onOpenAnalytics: () => void
   onOpenProfile: () => void
   onOpenPrograms: () => void
+  onOpenAISummary: () => void
+  syncStatus?: SyncStatus
 }
 
-export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpenProfile, onOpenPrograms }: Props) {
+export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpenProfile, onOpenPrograms, onOpenAISummary, syncStatus }: Props) {
   const { user } = useAuth()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>([])
   const [prs, setPRs] = useState<PR[]>([])
-  const [weeklyStats, setWeeklyStats] = useState<WeeklyStats>({ sessionsThisWeek: 0, targetDays: 3, muscleGroups: [] })
+  const [weeklyStats, setWeeklyStats] = useState<WeeklyStats>({ sessionsThisWeek: 0, targetDays: 3 })
   const [activeNav, setActiveNav] = useState('dashboard')
   const [loading, setLoading] = useState(true)
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('gerakfit-dark') === 'true')
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const today = new Date()
+
+  useEffect(() => {
+    document.body.style.background = darkMode ? '#111827' : '#f9fafb'
+    localStorage.setItem('gerakfit-dark', String(darkMode))
+  }, [darkMode])
 
   useEffect(() => {
     if (user) loadDashboard()
@@ -81,40 +90,37 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
         supabase.from('workout_sessions').select('id, workout_date, status, duration_seconds, template_id').eq('user_id', user.id).order('workout_date', { ascending: false }).limit(10),
         supabase.from('personal_records').select('id, record_type, weight_kg, reps, achieved_at, exercises(name)').eq('user_id', user.id).order('achieved_at', { ascending: false }).limit(5),
       ])
-
       if (profileRes.data) setProfile(profileRes.data)
       if (sessionsRes.data) setRecentSessions(sessionsRes.data)
       if (prsRes.data) setPRs(prsRes.data as unknown as PR[])
-
-      // Weekly stats
       const weekStart = new Date(today)
       weekStart.setDate(today.getDate() - today.getDay())
       weekStart.setHours(0, 0, 0, 0)
-
-      const thisWeekSessions = (sessionsRes.data || []).filter(s => {
-        const d = new Date(s.workout_date)
-        return d >= weekStart && s.status === 'completed'
-      })
-
-      setWeeklyStats({
-        sessionsThisWeek: thisWeekSessions.length,
-        targetDays: profileRes.data?.training_days_per_week ?? 3,
-        muscleGroups: [],
-      })
+      const thisWeekSessions = (sessionsRes.data || []).filter(s => new Date(s.workout_date) >= weekStart && s.status === 'completed')
+      setWeeklyStats({ sessionsThisWeek: thisWeekSessions.length, targetDays: profileRes.data?.training_days_per_week ?? 3 })
     } finally {
       setLoading(false)
     }
   }
 
+  async function deleteSession(id: string) {
+    await supabase.from('exercise_sets').delete().in('session_exercise_id',
+      (await supabase.from('session_exercises').select('id').eq('session_id', id)).data?.map(r => r.id) ?? []
+    )
+    await supabase.from('session_exercises').delete().eq('session_id', id)
+    await supabase.from('workout_sessions').delete().eq('id', id)
+    setRecentSessions(prev => prev.filter(s => s.id !== id))
+    setDeleteConfirm(null)
+    loadDashboard()
+  }
+
   function formatDuration(seconds: number | null) {
     if (!seconds) return '—'
-    const m = Math.round(seconds / 60)
-    return `${m} min`
+    return `${Math.round(seconds / 60)} min`
   }
 
   function formatDate(dateStr: string) {
-    const d = new Date(dateStr)
-    const diff = Math.floor((today.getTime() - d.getTime()) / 86400000)
+    const diff = Math.floor((today.getTime() - new Date(dateStr).getTime()) / 86400000)
     if (diff === 0) return 'Today'
     if (diff === 1) return 'Yesterday'
     return `${diff} days ago`
@@ -127,10 +133,18 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
     return 'Good evening'
   }
 
+  const D = darkMode
+  const bg = D ? '#111827' : '#f9fafb'
+  const card = D ? '#1f2937' : '#fff'
+  const border = D ? '#374151' : '#e5e7eb'
+  const textPrimary = D ? '#f9fafb' : '#111827'
+  const textSecondary = D ? '#9ca3af' : '#6b7280'
+  const textTertiary = D ? '#6b7280' : '#9ca3af'
+  const surfaceBg = D ? '#374151' : '#f3f4f6'
+
   const firstName = profile?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'there'
   const weekProgress = Math.min(weeklyStats.sessionsThisWeek / weeklyStats.targetDays, 1)
 
-  // Generate week grid (Sun–Sat)
   const weekDays = Array.from({ length: 7 }).map((_, i) => {
     const d = new Date(today)
     d.setDate(today.getDate() - today.getDay() + i)
@@ -140,27 +154,34 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
     return { label: DAY_NAMES[i], hasSession, isToday }
   })
 
-  if (loading) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb', fontFamily: 'system-ui, sans-serif' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '22px', fontWeight: 700 }}>Gerak<span style={{ color: '#1D9E75' }}>Fit</span></div>
-          <div style={{ fontSize: '13px', color: '#9ca3af', marginTop: '8px' }}>Loading...</div>
-        </div>
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: bg, fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: '22px', fontWeight: 700, color: textPrimary }}>Gerak<span style={{ color: '#1D9E75' }}>Fit</span></div>
+        <div style={{ fontSize: '13px', color: textTertiary, marginTop: '8px' }}>Loading...</div>
       </div>
-    )
-  }
+    </div>
+  )
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '80px' }}>
+    <div style={{ minHeight: '100vh', background: bg, fontFamily: 'system-ui, sans-serif', paddingBottom: '80px' }}>
 
-      {/* Top header */}
-      <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.5px' }}>
+      {/* Header */}
+      <div style={{ background: card, borderBottom: `1px solid ${border}`, padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.5px', color: textPrimary }}>
           Gerak<span style={{ color: '#1D9E75' }}>Fit</span>
         </div>
-        <div style={{ fontSize: '12px', color: '#6b7280', background: '#f3f4f6', padding: '4px 10px', borderRadius: '20px' }}>
-          {GOAL_LABELS[profile?.goal ?? ''] ?? 'No goal set'}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ fontSize: '12px', color: textSecondary, background: surfaceBg, padding: '4px 10px', borderRadius: '20px' }}>
+            {GOAL_LABELS[profile?.goal ?? ''] ?? 'No goal set'}
+          </div>
+          {/* Dark mode toggle */}
+          <button
+            onClick={() => setDarkMode(d => !d)}
+            style={{ width: '36px', height: '20px', borderRadius: '10px', border: 'none', background: darkMode ? '#1D9E75' : '#d1d5db', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}
+          >
+            <div style={{ position: 'absolute', top: '2px', left: darkMode ? '18px' : '2px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
+          </button>
         </div>
       </div>
 
@@ -168,47 +189,34 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
 
         {/* Greeting */}
         <div style={{ marginBottom: '20px' }}>
-          <div style={{ fontSize: '22px', fontWeight: 700, color: '#111827' }}>{getGreeting()}, {firstName}</div>
-          <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px' }}>
+          <div style={{ fontSize: '22px', fontWeight: 700, color: textPrimary }}>{getGreeting()}, {firstName}</div>
+          <div style={{ fontSize: '13px', color: textSecondary, marginTop: '2px' }}>
             {today.toLocaleDateString('en-MY', { weekday: 'long', day: 'numeric', month: 'long' })}
           </div>
         </div>
 
-        {/* Weekly progress card */}
-        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '16px', padding: '18px 20px', marginBottom: '16px' }}>
+        {/* Weekly progress */}
+        <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '18px 20px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
             <div>
-              <div style={{ fontSize: '13px', color: '#6b7280', fontWeight: 500 }}>This week</div>
-              <div style={{ fontSize: '22px', fontWeight: 700, color: '#111827', marginTop: '2px' }}>
+              <div style={{ fontSize: '13px', color: textSecondary, fontWeight: 500 }}>This week</div>
+              <div style={{ fontSize: '22px', fontWeight: 700, color: textPrimary, marginTop: '2px' }}>
                 {weeklyStats.sessionsThisWeek}
-                <span style={{ fontSize: '14px', fontWeight: 400, color: '#9ca3af' }}> / {weeklyStats.targetDays} sessions</span>
+                <span style={{ fontSize: '14px', fontWeight: 400, color: textTertiary }}> / {weeklyStats.targetDays} sessions</span>
               </div>
             </div>
-            <div style={{
-              width: '48px', height: '48px', borderRadius: '50%',
-              background: '#E1F5EE', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '13px', fontWeight: 700, color: '#085041',
-            }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: D ? '#064e3b' : '#E1F5EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: '#1D9E75' }}>
               {Math.round(weekProgress * 100)}%
             </div>
           </div>
-
-          {/* Progress bar */}
-          <div style={{ background: '#f3f4f6', borderRadius: '4px', height: '6px', marginBottom: '14px' }}>
+          <div style={{ background: surfaceBg, borderRadius: '4px', height: '6px', marginBottom: '14px' }}>
             <div style={{ background: '#1D9E75', height: '6px', borderRadius: '4px', width: `${weekProgress * 100}%`, transition: 'width 0.5s' }} />
           </div>
-
-          {/* Week day dots */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
             {weekDays.map((d, i) => (
               <div key={i} style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '10px', color: d.isToday ? '#1D9E75' : '#9ca3af', fontWeight: d.isToday ? 600 : 400, marginBottom: '4px' }}>{d.label}</div>
-                <div style={{
-                  width: '28px', height: '28px', borderRadius: '50%', margin: '0 auto',
-                  background: d.hasSession ? '#1D9E75' : d.isToday ? '#E1F5EE' : '#f3f4f6',
-                  border: d.isToday ? '2px solid #1D9E75' : '2px solid transparent',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
+                <div style={{ fontSize: '10px', color: d.isToday ? '#1D9E75' : textTertiary, fontWeight: d.isToday ? 600 : 400, marginBottom: '4px' }}>{d.label}</div>
+                <div style={{ width: '28px', height: '28px', borderRadius: '50%', margin: '0 auto', background: d.hasSession ? '#1D9E75' : d.isToday ? (D ? '#064e3b' : '#E1F5EE') : surfaceBg, border: d.isToday ? '2px solid #1D9E75' : '2px solid transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {d.hasSession && <span style={{ color: '#fff', fontSize: '12px' }}>✓</span>}
                 </div>
               </div>
@@ -216,48 +224,55 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
           </div>
         </div>
 
-        {/* Start workout CTA */}
-        <button
-          onClick={onStartWorkout}
-          style={{
-            width: '100%', padding: '16px', borderRadius: '14px',
-            background: '#1D9E75', border: 'none', color: '#fff',
-            fontSize: '16px', fontWeight: 700, cursor: 'pointer',
-            marginBottom: '16px', letterSpacing: '-0.2px',
-          }}
-        >
+        {/* Sync status */}
+        {syncStatus && syncStatus !== 'idle' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '8px', background: syncStatus === 'syncing' ? surfaceBg : syncStatus === 'success' ? (D ? '#064e3b' : '#E1F5EE') : syncStatus === 'offline' ? '#fef9c3' : '#fef2f2', marginBottom: '12px' }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: syncStatus === 'syncing' ? '#9ca3af' : syncStatus === 'success' ? '#1D9E75' : syncStatus === 'offline' ? '#d97706' : '#ef4444' }} />
+            <span style={{ fontSize: '12px', color: syncStatus === 'syncing' ? textSecondary : syncStatus === 'success' ? '#085041' : syncStatus === 'offline' ? '#92400e' : '#991b1b' }}>
+              {syncStatus === 'syncing' ? 'Syncing...' : syncStatus === 'success' ? 'All synced' : syncStatus === 'offline' ? 'Offline — saved locally' : 'Sync error'}
+            </span>
+          </div>
+        )}
+
+        {/* Start workout */}
+        <button onClick={onStartWorkout} style={{ width: '100%', padding: '16px', borderRadius: '14px', background: '#1D9E75', border: 'none', color: '#fff', fontSize: '16px', fontWeight: 700, cursor: 'pointer', marginBottom: '10px' }}>
           Start today's workout
         </button>
 
-        {/* Stats row */}
+        {/* AI Summary */}
+        <button onClick={onOpenAISummary} style={{ width: '100%', padding: '12px', borderRadius: '12px', background: card, border: `1px solid ${border}`, color: textPrimary, fontSize: '14px', fontWeight: 500, cursor: 'pointer', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <span>✦</span> AI weekly summary
+        </button>
+
+        {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '14px 16px' }}>
-            <div style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total sessions</div>
-            <div style={{ fontSize: '26px', fontWeight: 700, color: '#111827', marginTop: '4px' }}>{recentSessions.filter(s => s.status === 'completed').length}</div>
-            <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>all time</div>
-          </div>
-          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '14px 16px' }}>
-            <div style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Personal records</div>
-            <div style={{ fontSize: '26px', fontWeight: 700, color: '#111827', marginTop: '4px' }}>{prs.length}</div>
-            <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>recorded</div>
-          </div>
+          {[
+            { label: 'Total sessions', value: recentSessions.filter(s => s.status === 'completed').length, sub: 'all time' },
+            { label: 'Personal records', value: prs.length, sub: 'recorded' },
+          ].map(stat => (
+            <div key={stat.label} style={{ background: card, border: `1px solid ${border}`, borderRadius: '12px', padding: '14px 16px' }}>
+              <div style={{ fontSize: '11px', color: textTertiary, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{stat.label}</div>
+              <div style={{ fontSize: '26px', fontWeight: 700, color: textPrimary, marginTop: '4px' }}>{stat.value}</div>
+              <div style={{ fontSize: '11px', color: textSecondary, marginTop: '2px' }}>{stat.sub}</div>
+            </div>
+          ))}
         </div>
 
         {/* Recent PRs */}
         {prs.length > 0 && (
-          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '16px', padding: '16px 18px', marginBottom: '16px' }}>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: '#111827', marginBottom: '12px' }}>Recent PRs</div>
+          <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '16px 18px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: textPrimary, marginBottom: '12px' }}>Recent PRs</div>
             {prs.map(pr => (
-              <div key={pr.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '10px', marginBottom: '10px', borderBottom: '1px solid #f3f4f6' }}>
+              <div key={pr.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '10px', marginBottom: '10px', borderBottom: `1px solid ${border}` }}>
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 500, color: '#111827' }}>{pr.exercises?.name ?? '—'}</div>
-                  <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '1px' }}>{formatDate(pr.achieved_at)}</div>
+                  <div style={{ fontSize: '13px', fontWeight: 500, color: textPrimary }}>{pr.exercises?.name ?? '—'}</div>
+                  <div style={{ fontSize: '11px', color: textTertiary, marginTop: '1px' }}>{formatDate(pr.achieved_at)}</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: '13px', fontWeight: 600, color: '#1D9E75' }}>
                     {pr.weight_kg ? `${pr.weight_kg} kg` : ''}{pr.weight_kg && pr.reps ? ' × ' : ''}{pr.reps ? `${pr.reps} reps` : ''}
                   </div>
-                  <div style={{ fontSize: '10px', color: '#9ca3af', marginTop: '1px' }}>{pr.record_type.replace(/_/g, ' ')}</div>
+                  <div style={{ fontSize: '10px', color: textTertiary, marginTop: '1px', textTransform: 'capitalize' }}>{pr.record_type.replace(/_/g, ' ')}</div>
                 </div>
               </div>
             ))}
@@ -265,29 +280,36 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
         )}
 
         {/* Recent sessions */}
-        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '16px', padding: '16px 18px' }}>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: '#111827', marginBottom: '12px' }}>Recent sessions</div>
+        <div style={{ background: card, border: `1px solid ${border}`, borderRadius: '16px', padding: '16px 18px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 600, color: textPrimary, marginBottom: '12px' }}>Recent sessions</div>
           {recentSessions.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '20px 0', fontSize: '13px', color: '#9ca3af' }}>
-              No sessions yet. Start your first workout!
-            </div>
+            <div style={{ textAlign: 'center', padding: '20px 0', fontSize: '13px', color: textTertiary }}>No sessions yet. Start your first workout!</div>
           ) : (
             recentSessions.slice(0, 5).map(session => (
-              <div key={session.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '10px', marginBottom: '10px', borderBottom: '1px solid #f3f4f6' }}>
-                <div>
-                  <div style={{ fontSize: '13px', fontWeight: 500, color: '#111827' }}>Workout</div>
-                  <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '1px' }}>{formatDate(session.workout_date)}</div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ fontSize: '12px', color: '#6b7280' }}>{formatDuration(session.duration_seconds)}</div>
-                  <div style={{
-                    padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 500,
-                    background: session.status === 'completed' ? '#E1F5EE' : '#fef9c3',
-                    color: session.status === 'completed' ? '#085041' : '#854d0e',
-                  }}>
-                    {session.status}
+              <div key={session.id}>
+                {deleteConfirm === session.id ? (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${border}` }}>
+                    <span style={{ fontSize: '13px', color: '#ef4444' }}>Delete this session?</span>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={() => setDeleteConfirm(null)} style={{ padding: '4px 10px', borderRadius: '6px', border: `1px solid ${border}`, background: card, color: textSecondary, fontSize: '12px', cursor: 'pointer' }}>Cancel</button>
+                      <button onClick={() => deleteSession(session.id)} style={{ padding: '4px 10px', borderRadius: '6px', border: 'none', background: '#ef4444', color: '#fff', fontSize: '12px', cursor: 'pointer' }}>Delete</button>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '10px', marginBottom: '10px', borderBottom: `1px solid ${border}` }}>
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: 500, color: textPrimary }}>Workout</div>
+                      <div style={{ fontSize: '11px', color: textTertiary, marginTop: '1px' }}>{formatDate(session.workout_date)}</div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ fontSize: '12px', color: textSecondary }}>{formatDuration(session.duration_seconds)}</div>
+                      <div style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 500, background: session.status === 'completed' ? (D ? '#064e3b' : '#E1F5EE') : '#fef9c3', color: session.status === 'completed' ? '#1D9E75' : '#854d0e' }}>
+                        {session.status}
+                      </div>
+                      <button onClick={() => setDeleteConfirm(session.id)} style={{ padding: '2px 8px', borderRadius: '6px', border: `1px solid ${D ? '#4b5563' : '#fee2e2'}`, background: 'transparent', color: '#ef4444', fontSize: '11px', cursor: 'pointer' }}>×</button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))
           )}
@@ -296,29 +318,20 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
       </div>
 
       {/* Bottom nav */}
-      <div style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0,
-        background: '#fff', borderTop: '1px solid #e5e7eb',
-        display: 'flex', justifyContent: 'space-around', padding: '10px 0 16px',
-        zIndex: 100,
-      }}>
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: card, borderTop: `1px solid ${border}`, display: 'flex', justifyContent: 'space-around', padding: '10px 0 16px', zIndex: 100 }}>
         {NAV_ITEMS.map(item => (
           <button
             key={item.id}
-            onClick={() => item.id === 'profile' ? onOpenProfile() : item.id === 'programs' ? onOpenPrograms() : item.id === 'progress' ? onOpenAnalytics() : setActiveNav(item.id)}
-            style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: '3px', border: 'none', background: 'transparent',
-              cursor: 'pointer', padding: '4px 12px',
-              color: activeNav === item.id ? '#1D9E75' : '#9ca3af',
-              fontSize: '11px', fontWeight: activeNav === item.id ? 600 : 400,
+            onClick={() => {
+              if (item.id === 'profile') onOpenProfile()
+              else if (item.id === 'programs') onOpenPrograms()
+              else if (item.id === 'progress') onOpenAnalytics()
+              else if (item.id === 'workout') onStartWorkout()
+              else setActiveNav(item.id)
             }}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', border: 'none', background: 'transparent', cursor: 'pointer', padding: '4px 12px', color: activeNav === item.id ? '#1D9E75' : textTertiary, fontSize: '11px', fontWeight: activeNav === item.id ? 600 : 400 }}
           >
-            <div style={{
-              width: '6px', height: '6px', borderRadius: '50%',
-              background: activeNav === item.id ? '#1D9E75' : 'transparent',
-              marginBottom: '2px',
-            }} />
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: activeNav === item.id ? '#1D9E75' : 'transparent', marginBottom: '2px' }} />
             {item.label}
           </button>
         ))}

@@ -9,12 +9,14 @@ import AnalyticsScreen from './screens/AnalyticsScreen'
 import ProfileScreen from './screens/ProfileScreen'
 import ProgramBuilder from './screens/ProgramBuilder'
 import { supabase } from './lib/supabase'
+import AISummaryScreen from './screens/AISummaryScreen'
 
-type AppState = 'loading' | 'auth' | 'onboarding' | 'dashboard' | 'workout' | 'exercises' | 'analytics' | 'profile' | 'programs'
+type AppState = 'loading' | 'auth' | 'onboarding' | 'dashboard' | 'workout' | 'exercises' | 'analytics' | 'profile' | 'programs' | 'ai_summary'
 
 function AppContent() {
   const { user, loading: authLoading } = useAuth()
   const [appState, setAppState] = useState<AppState>('loading')
+  const syncStatus = 'idle' as const
 
   useEffect(() => {
     if (authLoading) return
@@ -45,15 +47,18 @@ function AppContent() {
   if (appState === 'analytics') return <AnalyticsScreen onBack={() => setAppState('dashboard')} />
   if (appState === 'profile') return <ProfileScreen onBack={() => setAppState('dashboard')} />
   if (appState === 'programs') return <ProgramBuilder onBack={() => setAppState('dashboard')} />
+  if (appState === 'ai_summary') return <AISummaryScreen onBack={() => setAppState('dashboard')} />
   return (
-    <DashboardScreen
-      onStartWorkout={() => setAppState('workout')}
-      onOpenLibrary={() => setAppState('exercises')}
-      onOpenAnalytics={() => setAppState('analytics')}
-      onOpenProfile={() => setAppState('profile')}
-      onOpenPrograms={() => setAppState('programs')}
-    />
-  )
+  <DashboardScreen
+    onStartWorkout={() => setAppState('workout')}
+    onOpenLibrary={() => setAppState('exercises')}
+    onOpenAnalytics={() => setAppState('analytics')}
+    onOpenProfile={() => setAppState('profile')}
+    onOpenPrograms={() => setAppState('programs')}
+    onOpenAISummary={() => setAppState('ai_summary')}
+    syncStatus={syncStatus}
+  />
+)
 }
 
 export default function App() {
