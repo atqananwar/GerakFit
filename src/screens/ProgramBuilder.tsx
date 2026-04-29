@@ -362,7 +362,7 @@ export default function ProgramBuilder({ onBack }: Props) {
   }
 
   // ── Exercise Picker Modal ────────────────────────────────
-  const BTN: React.CSSProperties = { padding: '6px 12px', borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, background: darkMode ? '#1f2937' : '#fff', fontSize: '13px', color: '#374151', cursor: 'pointer' }
+  const BTN: React.CSSProperties = { padding: '6px 12px', borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, background: darkMode ? '#1f2937' : '#fff', fontSize: '13px', color: darkMode ? '#d1d5db' : '#374151', cursor: 'pointer' }
 
   const currentDay = programDays[currentDayIdx]
   const pickerMuscles = ['All', ...new Set(allExercises.map(e => e.primary_muscle))].sort()

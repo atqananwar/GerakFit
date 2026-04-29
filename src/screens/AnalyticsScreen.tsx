@@ -272,7 +272,7 @@ export default function AnalyticsScreen({ onBack }: Props) {
 
   const btnStyle: React.CSSProperties = {
     padding: '6px 12px', borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`,
-    background: darkMode ? '#1f2937' : '#fff', fontSize: '13px', color: '#374151', cursor: 'pointer',
+    background: darkMode ? '#1f2937' : '#fff', fontSize: '13px', color: darkMode ? '#d1d5db' : '#374151', cursor: 'pointer',
   }
   const cardStyle: React.CSSProperties = {
     background: darkMode ? '#1f2937' : '#fff', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, borderRadius: '14px',

@@ -105,7 +105,7 @@ export default function WorkoutLogger({ onBack }: Props) {
     }
     if (searchQuery) filtered = filtered.filter(e => e.name.toLowerCase().includes(searchQuery.toLowerCase()))
     setFilteredExercises(filtered)
-  }, [exercises, muscleFilter, searchQuery])
+  }, [exercises, muscleFilter, subMuscleFilter, searchQuery])
 
   async function loadExercises() {
     const { data } = await supabase.from('exercises').select('id, name, primary_muscle, secondary_muscles, equipment, difficulty').eq('is_active', true).order('name')
