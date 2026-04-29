@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { signIn, signUp } from '../lib/auth'
 import { supabase } from '../lib/supabase'
 
@@ -16,6 +16,8 @@ interface Props {
 }
 
 export default function AuthScreen({ onSuccess }: Props) {
+  const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') === 'true')
+  useEffect(() => { document.body.style.background = darkMode ? '#111827' : '#f9fafb' }, [darkMode])
   const [mode, setMode] = useState<Mode>('login')
   const [form, setForm] = useState<FormState>({ fullName: '', email: '', password: '', confirmPassword: '' })
   const [loading, setLoading] = useState(false)
@@ -83,6 +85,9 @@ export default function AuthScreen({ onSuccess }: Props) {
     }
   }
 
+  const LBL: React.CSSProperties = { display: 'block', fontSize: '12px', fontWeight: 500, color: darkMode ? '#d1d5db' : '#374151', marginBottom: '5px' }
+  const INP: React.CSSProperties = { width: '100%', padding: '10px 12px', borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, fontSize: '14px', color: darkMode ? '#f9fafb' : '#111827', background: darkMode ? '#1f2937' : '#fff', outline: 'none', boxSizing: 'border-box' }
+
   const subtitles: Record<Mode, string> = {
     login: 'Welcome back',
     register: 'Start your fitness journey',
@@ -90,20 +95,20 @@ export default function AuthScreen({ onSuccess }: Props) {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f9fafb', padding: '24px', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: darkMode ? '#111827' : '#f9fafb', padding: '24px', fontFamily: 'system-ui, sans-serif' }}>
 
       <div style={{ marginBottom: '32px', textAlign: 'center' }}>
         <div style={{ fontSize: '28px', fontWeight: 700, letterSpacing: '-0.5px' }}>
           Gerak<span style={{ color: '#1D9E75' }}>Fit</span>
         </div>
-        <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px' }}>{subtitles[mode]}</div>
+        <div style={{ fontSize: '13px', color: darkMode ? '#9ca3af' : '#6b7280', marginTop: '4px' }}>{subtitles[mode]}</div>
       </div>
 
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '16px', padding: '28px 24px', width: '100%', maxWidth: '380px' }}>
+      <div style={{ background: darkMode ? '#1f2937' : '#fff', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, borderRadius: '16px', padding: '28px 24px', width: '100%', maxWidth: '380px' }}>
 
         {/* Tabs — only login/register */}
         {mode !== 'forgot' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#f3f4f6', borderRadius: '10px', padding: '4px', marginBottom: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: darkMode ? '#374151' : '#f3f4f6', borderRadius: '10px', padding: '4px', marginBottom: '24px' }}>
             {(['login', 'register'] as Mode[]).map(m => (
               <button key={m} onClick={() => switchMode(m)} style={{ padding: '8px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: 500, cursor: 'pointer', transition: 'all 0.15s', background: mode === m ? '#fff' : 'transparent', color: mode === m ? '#111827' : '#6b7280', boxShadow: mode === m ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>
                 {m === 'login' ? 'Log in' : 'Register'}
@@ -115,8 +120,8 @@ export default function AuthScreen({ onSuccess }: Props) {
         {/* Forgot header */}
         {mode === 'forgot' && (
           <div style={{ marginBottom: '20px' }}>
-            <button onClick={() => switchMode('login')} style={{ fontSize: '13px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: '12px' }}>← Back to login</button>
-            <div style={{ fontSize: '13px', color: '#6b7280', lineHeight: 1.6 }}>Enter your email and we'll send you a link to reset your password.</div>
+            <button onClick={() => switchMode('login')} style={{ fontSize: '13px', color: darkMode ? '#9ca3af' : '#6b7280', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: '12px' }}>← Back to login</button>
+            <div style={{ fontSize: '13px', color: darkMode ? '#9ca3af' : '#6b7280', lineHeight: 1.6 }}>Enter your email and we'll send you a link to reset your password.</div>
           </div>
         )}
 
@@ -207,6 +212,3 @@ export default function AuthScreen({ onSuccess }: Props) {
     </div>
   )
 }
-
-const LBL: React.CSSProperties = { display: 'block', fontSize: '12px', fontWeight: 500, color: '#374151', marginBottom: '5px' }
-const INP: React.CSSProperties = { width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '14px', color: '#111827', background: '#fff', outline: 'none', boxSizing: 'border-box' }

@@ -152,6 +152,8 @@ function getDefaultSets(ex: Exercise) {
 }
 
 export default function ProgramBuilder({ onBack }: Props) {
+  const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') === 'true')
+  useEffect(() => { document.body.style.background = darkMode ? '#111827' : '#f9fafb' }, [darkMode])
   const { user } = useAuth()
   const [phase, setPhase] = useState<Phase>('home')
   const [activeProgram, setActiveProgram] = useState<ActiveProgram | null>(null)
@@ -360,6 +362,8 @@ export default function ProgramBuilder({ onBack }: Props) {
   }
 
   // ── Exercise Picker Modal ────────────────────────────────
+  const BTN: React.CSSProperties = { padding: '6px 12px', borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, background: darkMode ? '#1f2937' : '#fff', fontSize: '13px', color: '#374151', cursor: 'pointer' }
+
   const currentDay = programDays[currentDayIdx]
   const pickerMuscles = ['All', ...new Set(allExercises.map(e => e.primary_muscle))].sort()
   const filteredExercises = allExercises.filter(ex => {
@@ -372,13 +376,13 @@ export default function ProgramBuilder({ onBack }: Props) {
 
   if (showExPicker) {
     return (
-      <div style={{ minHeight: '100vh', background: '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '20px' }}>
-        <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ minHeight: '100vh', background: darkMode ? '#111827' : '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '20px' }}>
+        <div style={{ background: darkMode ? '#1f2937' : '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button onClick={() => setShowExPicker(false)} style={BTN}>← Back</button>
-          <div style={{ fontSize: '15px', fontWeight: 600, color: '#111827' }}>Add to {currentDay?.name}</div>
+          <div style={{ fontSize: '15px', fontWeight: 600, color: darkMode ? '#f9fafb' : '#111827' }}>Add to {currentDay?.name}</div>
         </div>
         <div style={{ padding: '12px 16px 0' }}>
-          <input type="text" placeholder="Search exercises..." value={pickerSearch} onChange={e => setPickerSearch(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '14px', boxSizing: 'border-box', color: '#111827' }} />
+          <input type="text" placeholder="Search exercises..." value={pickerSearch} onChange={e => setPickerSearch(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, fontSize: '14px', boxSizing: 'border-box', color: darkMode ? '#f9fafb' : '#111827' }} />
         </div>
         <div style={{ padding: '8px 16px 0', display: 'flex', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none' }}>
           {pickerMuscles.slice(0, 15).map(m => (
@@ -390,12 +394,12 @@ export default function ProgramBuilder({ onBack }: Props) {
           {filteredExercises.map(ex => {
             const c = MUSCLE_COLORS[ex.primary_muscle] ?? { bg: '#f3f4f6', text: '#374151' }
             return (
-              <div key={ex.id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '11px 14px', marginBottom: '7px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={ex.id} style={{ background: darkMode ? '#1f2937' : '#fff', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, borderRadius: '12px', padding: '11px 14px', marginBottom: '7px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '14px', fontWeight: 500, color: '#111827' }}>{ex.name}</div>
+                  <div style={{ fontSize: '14px', fontWeight: 500, color: darkMode ? '#f9fafb' : '#111827' }}>{ex.name}</div>
                   <div style={{ display: 'flex', gap: '5px', marginTop: '3px', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: '10px', padding: '1px 7px', borderRadius: '8px', background: c.bg, color: c.text }}>{ex.primary_muscle}</span>
-                    {ex.difficulty && <span style={{ fontSize: '10px', padding: '1px 7px', borderRadius: '8px', background: '#f3f4f6', color: '#6b7280', textTransform: 'capitalize' }}>{ex.difficulty}</span>}
+                    {ex.difficulty && <span style={{ fontSize: '10px', padding: '1px 7px', borderRadius: '8px', background: darkMode ? '#374151' : '#f3f4f6', color: darkMode ? '#9ca3af' : '#6b7280', textTransform: 'capitalize' }}>{ex.difficulty}</span>}
                     {isCompound(ex) && <span style={{ fontSize: '10px', padding: '1px 7px', borderRadius: '8px', background: '#fef9c3', color: '#854d0e' }}>Compound</span>}
                   </div>
                 </div>
@@ -411,11 +415,11 @@ export default function ProgramBuilder({ onBack }: Props) {
   // ── Build Days ───────────────────────────────────────────
   if (phase === 'build_days' && selectedSplit) {
     return (
-      <div style={{ minHeight: '100vh', background: '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '100px' }}>
-        <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ minHeight: '100vh', background: darkMode ? '#111827' : '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '100px' }}>
+        <div style={{ background: darkMode ? '#1f2937' : '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button onClick={() => setPhase('pick_split')} style={BTN}>← Back</button>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '15px', fontWeight: 600, color: '#111827' }}>{selectedSplit.name}</div>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: darkMode ? '#f9fafb' : '#111827' }}>{selectedSplit.name}</div>
             <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '1px' }}>
               {programDays.filter(d => d.exercises.length > 0).length}/{programDays.length} days configured
             </div>
@@ -435,21 +439,21 @@ export default function ProgramBuilder({ onBack }: Props) {
           {selectedSplit.id === 'custom' && (
             <>
               {showAddDay ? (
-                <div style={{ background: '#fff', border: '1px solid #1D9E75', borderRadius: '12px', padding: '14px', marginBottom: '12px' }}>
+                <div style={{ background: darkMode ? '#1f2937' : '#fff', border: '1px solid #1D9E75', borderRadius: '12px', padding: '14px', marginBottom: '12px' }}>
                   <input
                     type="text" placeholder="e.g. Push Day, Leg Day, Back Day..."
                     value={newDayName} onChange={e => setNewDayName(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && addCustomDay()}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '14px', boxSizing: 'border-box', color: '#111827', marginBottom: '10px' }}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, fontSize: '14px', boxSizing: 'border-box', color: darkMode ? '#f9fafb' : '#111827', marginBottom: '10px' }}
                     autoFocus
                   />
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => setShowAddDay(false)} style={{ flex: 1, padding: '9px', borderRadius: '8px', border: '1px solid #e5e7eb', background: '#fff', fontSize: '13px', cursor: 'pointer' }}>Cancel</button>
+                    <button onClick={() => setShowAddDay(false)} style={{ flex: 1, padding: '9px', borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, background: darkMode ? '#1f2937' : '#fff', fontSize: '13px', cursor: 'pointer' }}>Cancel</button>
                     <button onClick={addCustomDay} disabled={!newDayName.trim()} style={{ flex: 2, padding: '9px', borderRadius: '8px', background: newDayName.trim() ? '#1D9E75' : '#9FE1CB', border: 'none', color: '#fff', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>Add day</button>
                   </div>
                 </div>
               ) : (
-                <button onClick={() => setShowAddDay(true)} style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1.5px dashed #d1d5db', background: '#fff', fontSize: '14px', color: '#6b7280', cursor: 'pointer', marginBottom: '12px' }}>
+                <button onClick={() => setShowAddDay(true)} style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1.5px dashed #d1d5db', background: darkMode ? '#1f2937' : '#fff', fontSize: '14px', color: darkMode ? '#9ca3af' : '#6b7280', cursor: 'pointer', marginBottom: '12px' }}>
                   + Add training day
                 </button>
               )}
@@ -457,12 +461,12 @@ export default function ProgramBuilder({ onBack }: Props) {
           )}
 
           {programDays.map((day, dayIdx) => (
-            <div key={dayIdx} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '14px', marginBottom: '12px', overflow: 'hidden' }}>
+            <div key={dayIdx} style={{ background: darkMode ? '#1f2937' : '#fff', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, borderRadius: '14px', marginBottom: '12px', overflow: 'hidden' }}>
               {/* Day header */}
               <div style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', borderBottom: expandedDay === dayIdx ? '1px solid #f3f4f6' : 'none' }} onClick={() => { setExpandedDay(expandedDay === dayIdx ? null : dayIdx); setCurrentDayIdx(dayIdx) }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ fontSize: '15px', fontWeight: 700, color: '#111827' }}>{day.name}</div>
+                    <div style={{ fontSize: '15px', fontWeight: 700, color: darkMode ? '#f9fafb' : '#111827' }}>{day.name}</div>
                     {day.exercises.length > 0 && <span style={{ fontSize: '11px', background: '#E1F5EE', color: '#085041', padding: '2px 8px', borderRadius: '10px' }}>{day.exercises.length} exercises</span>}
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '5px' }}>
@@ -490,13 +494,13 @@ export default function ProgramBuilder({ onBack }: Props) {
                   {day.exercises.map((ex, exIdx) => {
                     const c = MUSCLE_COLORS[ex.primary_muscle] ?? { bg: '#f3f4f6', text: '#6b7280' }
                     return (
-                      <div key={exIdx} style={{ background: '#f9fafb', borderRadius: '10px', padding: '10px 12px', marginBottom: '8px', border: '1px solid #f3f4f6' }}>
+                      <div key={exIdx} style={{ background: darkMode ? '#111827' : '#f9fafb', borderRadius: '10px', padding: '10px 12px', marginBottom: '8px', border: '1px solid #f3f4f6' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: '13px', fontWeight: 500, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ex.name}</div>
+                            <div style={{ fontSize: '13px', fontWeight: 500, color: darkMode ? '#f9fafb' : '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ex.name}</div>
                             <span style={{ fontSize: '10px', padding: '1px 7px', borderRadius: '8px', background: c.bg, color: c.text, marginTop: '2px', display: 'inline-block' }}>{ex.primary_muscle}</span>
                           </div>
-                          <button onClick={() => removeExercise(dayIdx, exIdx)} style={{ padding: '3px 8px', borderRadius: '6px', border: '1px solid #fee2e2', background: '#fff', color: '#ef4444', fontSize: '11px', cursor: 'pointer', marginLeft: '8px', flexShrink: 0 }}>Remove</button>
+                          <button onClick={() => removeExercise(dayIdx, exIdx)} style={{ padding: '3px 8px', borderRadius: '6px', border: '1px solid #fee2e2', background: darkMode ? '#1f2937' : '#fff', color: '#ef4444', fontSize: '11px', cursor: 'pointer', marginLeft: '8px', flexShrink: 0 }}>Remove</button>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
                           {[
@@ -506,7 +510,7 @@ export default function ProgramBuilder({ onBack }: Props) {
                           ].map(({ label, field, value }) => (
                             <div key={field}>
                               <div style={{ fontSize: '10px', color: '#9ca3af', marginBottom: '3px' }}>{label}</div>
-                              <input type="number" value={value} onChange={e => updateExerciseField(dayIdx, exIdx, field, Number(e.target.value))} style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #e5e7eb', fontSize: '13px', textAlign: 'center', boxSizing: 'border-box', color: '#111827' }} />
+                              <input type="number" value={value} onChange={e => updateExerciseField(dayIdx, exIdx, field, Number(e.target.value))} style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, fontSize: '13px', textAlign: 'center', boxSizing: 'border-box', color: darkMode ? '#f9fafb' : '#111827' }} />
                             </div>
                           ))}
                         </div>
@@ -517,7 +521,7 @@ export default function ProgramBuilder({ onBack }: Props) {
                   {/* Add exercise button */}
                   <button
                     onClick={() => { setCurrentDayIdx(dayIdx); setPickerMuscle('All'); setPickerSearch(''); setShowExPicker(true) }}
-                    style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1.5px dashed #d1d5db', background: '#fff', fontSize: '13px', color: '#6b7280', cursor: 'pointer', marginTop: '4px' }}
+                    style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1.5px dashed #d1d5db', background: darkMode ? '#1f2937' : '#fff', fontSize: '13px', color: darkMode ? '#9ca3af' : '#6b7280', cursor: 'pointer', marginTop: '4px' }}
                   >
                     + Add exercise
                   </button>
@@ -533,10 +537,10 @@ export default function ProgramBuilder({ onBack }: Props) {
   // ── Saving ───────────────────────────────────────────────
   if (phase === 'saving' || phase === 'saved') {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: darkMode ? '#111827' : '#f9fafb', fontFamily: 'system-ui, sans-serif' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '32px', marginBottom: '12px' }}>{phase === 'saved' ? '✓' : '⟳'}</div>
-          <div style={{ fontSize: '16px', fontWeight: 600, color: '#111827' }}>{phase === 'saved' ? 'Program activated!' : 'Saving...'}</div>
+          <div style={{ fontSize: '16px', fontWeight: 600, color: darkMode ? '#f9fafb' : '#111827' }}>{phase === 'saved' ? 'Program activated!' : 'Saving...'}</div>
         </div>
       </div>
     )
@@ -545,33 +549,33 @@ export default function ProgramBuilder({ onBack }: Props) {
   // ── Pick Split ───────────────────────────────────────────
   if (phase === 'pick_split') {
     return (
-      <div style={{ minHeight: '100vh', background: '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '20px' }}>
-        <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ minHeight: '100vh', background: darkMode ? '#111827' : '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '20px' }}>
+        <div style={{ background: darkMode ? '#1f2937' : '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button onClick={() => setPhase('home')} style={BTN}>← Back</button>
-          <div style={{ fontSize: '16px', fontWeight: 600, color: '#111827' }}>Choose a split</div>
+          <div style={{ fontSize: '16px', fontWeight: 600, color: darkMode ? '#f9fafb' : '#111827' }}>Choose a split</div>
         </div>
         <div style={{ padding: '14px 16px' }}>
-          <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '14px' }}>
+          <div style={{ fontSize: '13px', color: darkMode ? '#9ca3af' : '#6b7280', marginBottom: '14px' }}>
             Exercises will be auto-suggested based on your equipment. You can customize every day.
           </div>
           {SPLITS.map(split => (
-            <div key={split.id} onClick={() => handleStartBuild(split)} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '14px', padding: '16px', marginBottom: '10px', cursor: 'pointer' }}>
+            <div key={split.id} onClick={() => handleStartBuild(split)} style={{ background: darkMode ? '#1f2937' : '#fff', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, borderRadius: '14px', padding: '16px', marginBottom: '10px', cursor: 'pointer' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                 <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: '#E1F5EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
                   {split.id === 'ppl_3' ? '△' : split.id === 'ppl_6' ? '⬡' : split.id === 'upper_lower' ? '⊕' : split.id === 'full_body' ? '◎' : split.id === 'bro_split' ? '□' : '✦'}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '15px', fontWeight: 600, color: '#111827' }}>{split.name}</div>
-                  <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '3px', lineHeight: 1.5 }}>{split.description}</div>
+                  <div style={{ fontSize: '15px', fontWeight: 600, color: darkMode ? '#f9fafb' : '#111827' }}>{split.name}</div>
+                  <div style={{ fontSize: '12px', color: darkMode ? '#9ca3af' : '#6b7280', marginTop: '3px', lineHeight: 1.5 }}>{split.description}</div>
                   <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: '11px', background: '#E6F1FB', color: '#185FA5', padding: '2px 8px', borderRadius: '8px' }}>
                       {split.days_per_week > 0 ? `${split.days_per_week} days/week` : 'Custom days'}
                     </span>
-                    <span style={{ fontSize: '11px', background: '#f3f4f6', color: '#6b7280', padding: '2px 8px', borderRadius: '8px' }}>{split.best_for}</span>
+                    <span style={{ fontSize: '11px', background: darkMode ? '#374151' : '#f3f4f6', color: darkMode ? '#9ca3af' : '#6b7280', padding: '2px 8px', borderRadius: '8px' }}>{split.best_for}</span>
                   </div>
                   {split.id !== 'custom' && (
                     <div style={{ display: 'flex', gap: '4px', marginTop: '8px', flexWrap: 'wrap' }}>
-                      {split.days.map(d => <span key={d.name} style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '6px', background: '#f3f4f6', color: '#374151' }}>{d.name}</span>)}
+                      {split.days.map(d => <span key={d.name} style={{ fontSize: '10px', padding: '2px 7px', borderRadius: '6px', background: darkMode ? '#374151' : '#f3f4f6', color: '#374151' }}>{d.name}</span>)}
                     </div>
                   )}
                 </div>
@@ -586,16 +590,16 @@ export default function ProgramBuilder({ onBack }: Props) {
 
   // ── Home ─────────────────────────────────────────────────
   if (loading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: darkMode ? '#111827' : '#f9fafb', fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ fontSize: '13px', color: '#9ca3af' }}>Loading...</div>
     </div>
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '32px' }}>
-      <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+    <div style={{ minHeight: '100vh', background: darkMode ? '#111827' : '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '32px' }}>
+      <div style={{ background: darkMode ? '#1f2937' : '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
         <button onClick={onBack} style={BTN}>← Back</button>
-        <div style={{ fontSize: '16px', fontWeight: 600, color: '#111827', flex: 1 }}>Programs</div>
+        <div style={{ fontSize: '16px', fontWeight: 600, color: darkMode ? '#f9fafb' : '#111827', flex: 1 }}>Programs</div>
       </div>
 
       <div style={{ padding: '20px 16px', maxWidth: '560px', margin: '0 auto' }}>
@@ -612,11 +616,11 @@ export default function ProgramBuilder({ onBack }: Props) {
             </div>
 
             {activeProgram.days.map((day, i) => (
-              <div key={i} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '14px', marginBottom: '8px', overflow: 'hidden' }}>
+              <div key={i} style={{ background: darkMode ? '#1f2937' : '#fff', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, borderRadius: '14px', marginBottom: '8px', overflow: 'hidden' }}>
                 <div onClick={() => setExpandedDay(expandedDay === i ? null : i)} style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
                   <div>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#111827' }}>{day.name}</div>
-                    <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '1px' }}>{day.exercises.length} exercises · ~{day.estimated_minutes} min</div>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: darkMode ? '#f9fafb' : '#111827' }}>{day.name}</div>
+                    <div style={{ fontSize: '12px', color: darkMode ? '#9ca3af' : '#6b7280', marginTop: '1px' }}>{day.exercises.length} exercises · ~{day.estimated_minutes} min</div>
                   </div>
                   <span style={{ color: '#9ca3af', fontSize: '12px' }}>{expandedDay === i ? '▲' : '▼'}</span>
                 </div>
@@ -624,8 +628,8 @@ export default function ProgramBuilder({ onBack }: Props) {
                   <div style={{ borderTop: '1px solid #f3f4f6', padding: '8px 16px 12px' }}>
                     {day.exercises.map((ex, j) => (
                       <div key={j} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid #f9fafb' }}>
-                        <div style={{ fontSize: '13px', color: '#111827' }}>{ex.name}</div>
-                        <div style={{ fontSize: '12px', color: '#6b7280' }}>{ex.sets} × {ex.min_reps}–{ex.max_reps}</div>
+                        <div style={{ fontSize: '13px', color: darkMode ? '#f9fafb' : '#111827' }}>{ex.name}</div>
+                        <div style={{ fontSize: '12px', color: darkMode ? '#9ca3af' : '#6b7280' }}>{ex.sets} × {ex.min_reps}–{ex.max_reps}</div>
                       </div>
                     ))}
                   </div>
@@ -633,7 +637,7 @@ export default function ProgramBuilder({ onBack }: Props) {
               </div>
             ))}
 
-            <button onClick={() => setPhase('pick_split')} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid #e5e7eb', background: '#fff', fontSize: '14px', color: '#374151', cursor: 'pointer', marginTop: '8px' }}>
+            <button onClick={() => setPhase('pick_split')} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, background: darkMode ? '#1f2937' : '#fff', fontSize: '14px', color: '#374151', cursor: 'pointer', marginTop: '8px' }}>
               Switch program
             </button>
           </>
@@ -653,5 +657,3 @@ export default function ProgramBuilder({ onBack }: Props) {
     </div>
   )
 }
-
-const BTN: React.CSSProperties = { padding: '6px 12px', borderRadius: '8px', border: '1px solid #e5e7eb', background: '#fff', fontSize: '13px', color: '#374151', cursor: 'pointer' }

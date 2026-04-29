@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -30,6 +30,8 @@ interface Props {
 }
 
 export default function OnboardingScreen({ onComplete }: Props) {
+  const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') === 'true')
+  useEffect(() => { document.body.style.background = darkMode ? '#111827' : '#f9fafb' }, [darkMode])
   const { user } = useAuth()
   const [step, setStep] = useState(1)
   const totalSteps = 4
@@ -115,10 +117,17 @@ export default function OnboardingScreen({ onComplete }: Props) {
     { id: 'advanced', label: 'Advanced', desc: '3+ years, knows the basics well' },
   ]
 
+  const stepTitleStyle: React.CSSProperties = {
+    fontSize: '18px', fontWeight: 600, color: darkMode ? '#f9fafb' : '#111827', marginBottom: '6px',
+  }
+  const stepDescStyle: React.CSSProperties = {
+    fontSize: '13px', color: darkMode ? '#9ca3af' : '#6b7280', lineHeight: '1.5',
+  }
+
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#f9fafb',
+      background: darkMode ? '#111827' : '#f9fafb',
       fontFamily: 'system-ui, sans-serif',
       display: 'flex',
       flexDirection: 'column',
@@ -146,8 +155,8 @@ export default function OnboardingScreen({ onComplete }: Props) {
 
       {/* Card */}
       <div style={{
-        background: '#fff',
-        border: '1px solid #e5e7eb',
+        background: darkMode ? '#1f2937' : '#fff',
+        border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`,
         borderRadius: '16px',
         padding: '24px',
         width: '100%',
@@ -271,8 +280,8 @@ export default function OnboardingScreen({ onComplete }: Props) {
                 rows={3}
                 style={{
                   width: '100%', padding: '10px 12px',
-                  borderRadius: '8px', border: '1px solid #e5e7eb',
-                  fontSize: '13px', color: '#111827', resize: 'none',
+                  borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`,
+                  fontSize: '13px', color: darkMode ? '#f9fafb' : '#111827', resize: 'none',
                   fontFamily: 'system-ui, sans-serif', boxSizing: 'border-box',
                 }}
               />
@@ -334,7 +343,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
               onClick={() => setStep(s => s - 1)}
               style={{
                 flex: 1, padding: '11px', borderRadius: '10px',
-                border: '1px solid #e5e7eb', background: '#fff',
+                border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, background: darkMode ? '#1f2937' : '#fff',
                 fontSize: '14px', color: '#374151', cursor: 'pointer',
               }}
             >
@@ -361,12 +370,6 @@ export default function OnboardingScreen({ onComplete }: Props) {
   )
 }
 
-const stepTitleStyle: React.CSSProperties = {
-  fontSize: '18px', fontWeight: 600, color: '#111827', marginBottom: '6px',
-}
-const stepDescStyle: React.CSSProperties = {
-  fontSize: '13px', color: '#6b7280', lineHeight: '1.5',
-}
 const optionStyle: React.CSSProperties = {
   padding: '12px 14px', borderRadius: '10px',
   border: '1.5px solid #e5e7eb', cursor: 'pointer',

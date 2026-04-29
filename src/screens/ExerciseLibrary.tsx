@@ -17,7 +17,18 @@ interface Props {
   onBack: () => void
 }
 
-const MUSCLES = ['All', 'Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Legs', 'Abs/Core', 'Cardio', 'Mobility']
+const MUSCLE_GROUPS = [
+  { label: 'All', values: [] as string[] },
+  { label: 'Chest', values: ['Upper Chest', 'Mid Chest', 'Lower Chest'] },
+  { label: 'Back', values: ['Lats', 'Mid Back', 'Lower Back', 'Traps'] },
+  { label: 'Shoulders', values: ['Shoulders', 'Side Delt', 'Rear Delt'] },
+  { label: 'Biceps', values: ['Biceps Long Head', 'Biceps Short Head', 'Brachialis'] },
+  { label: 'Triceps', values: ['Triceps Long Head', 'Triceps Lateral Head'] },
+  { label: 'Legs', values: ['Quads', 'Hamstrings', 'Glutes', 'Calves'] },
+  { label: 'Abs/Core', values: ['Abs', 'Obliques'] },
+  { label: 'Forearms', values: ['Forearms', 'Brachioradialis'] },
+  { label: 'Cardio', values: ['Cardio'] },
+]
 const DIFFICULTIES = ['All', 'beginner', 'intermediate', 'advanced']
 
 const MUSCLE_COLORS: Record<string, { bg: string; text: string }> = {
@@ -33,10 +44,13 @@ const MUSCLE_COLORS: Record<string, { bg: string; text: string }> = {
 }
 
 export default function ExerciseLibrary({ onBack }: Props) {
+  const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') === 'true')
+  useEffect(() => { document.body.style.background = darkMode ? '#111827' : '#f9fafb' }, [darkMode])
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [filtered, setFiltered] = useState<Exercise[]>([])
   const [search, setSearch] = useState('')
   const [muscle, setMuscle] = useState('All')
+  const [subMuscle, setSubMuscle] = useState<string | null>(null)
   const [difficulty, setDifficulty] = useState('All')
   const [selected, setSelected] = useState<Exercise | null>(null)
   const [loading, setLoading] = useState(true)
@@ -45,14 +59,22 @@ export default function ExerciseLibrary({ onBack }: Props) {
 
   useEffect(() => {
     let res = exercises
-    if (muscle !== 'All') res = res.filter(e => e.primary_muscle === muscle)
+    if (muscle !== 'All') {
+      const group = MUSCLE_GROUPS.find(g => g.label === muscle)
+      const muscles = group?.values ?? [muscle]
+      if (subMuscle) {
+        res = res.filter(e => e.primary_muscle === subMuscle)
+      } else {
+        res = res.filter(e => muscles.includes(e.primary_muscle))
+      }
+    }
     if (difficulty !== 'All') res = res.filter(e => e.difficulty === difficulty)
     if (search) res = res.filter(e =>
       e.name.toLowerCase().includes(search.toLowerCase()) ||
       (e.secondary_muscles ?? []).join(' ').toLowerCase().includes(search.toLowerCase())
     )
     setFiltered(res)
-  }, [exercises, muscle, difficulty, search])
+  }, [exercises, muscle, subMuscle, difficulty, search])
 
   async function loadExercises() {
     const { data } = await supabase
@@ -64,14 +86,27 @@ export default function ExerciseLibrary({ onBack }: Props) {
     setLoading(false)
   }
 
+  const btnStyle: React.CSSProperties = {
+    padding: '6px 12px', borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`,
+    background: darkMode ? '#1f2937' : '#fff', fontSize: '13px', color: '#374151', cursor: 'pointer', whiteSpace: 'nowrap',
+  }
+  const sectionCard: React.CSSProperties = {
+    background: darkMode ? '#1f2937' : '#fff', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, borderRadius: '12px',
+    padding: '14px 16px', marginBottom: '12px',
+  }
+  const sectionLabel: React.CSSProperties = {
+    fontSize: '11px', fontWeight: 600, color: darkMode ? '#6b7280' : '#9ca3af',
+    textTransform: 'uppercase', letterSpacing: '0.5px',
+  }
+
   // ── Detail view ──────────────────────────────────────────
   if (selected) {
     const colors = MUSCLE_COLORS[selected.primary_muscle] ?? { bg: '#f3f4f6', text: '#374151' }
     return (
-      <div style={{ minHeight: '100vh', background: '#f9fafb', fontFamily: 'system-ui, sans-serif' }}>
-        <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ minHeight: '100vh', background: darkMode ? '#111827' : '#f9fafb', fontFamily: 'system-ui, sans-serif' }}>
+        <div style={{ background: darkMode ? '#1f2937' : '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button onClick={() => setSelected(null)} style={btnStyle}>← Back</button>
-          <div style={{ fontSize: '15px', fontWeight: 600, color: '#111827', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.name}</div>
+          <div style={{ fontSize: '15px', fontWeight: 600, color: darkMode ? '#f9fafb' : '#111827', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.name}</div>
         </div>
 
         <div style={{ padding: '20px 16px', maxWidth: '600px', margin: '0 auto' }}>
@@ -79,10 +114,10 @@ export default function ExerciseLibrary({ onBack }: Props) {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '20px' }}>
             <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 500, background: colors.bg, color: colors.text }}>{selected.primary_muscle}</span>
             {selected.difficulty && (
-              <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '12px', background: '#f3f4f6', color: '#6b7280' }}>{selected.difficulty}</span>
+              <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '12px', background: darkMode ? '#374151' : '#f3f4f6', color: darkMode ? '#9ca3af' : '#6b7280' }}>{selected.difficulty}</span>
             )}
             {selected.movement_pattern && (
-              <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '12px', background: '#f3f4f6', color: '#6b7280' }}>{selected.movement_pattern}</span>
+              <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '12px', background: darkMode ? '#374151' : '#f3f4f6', color: darkMode ? '#9ca3af' : '#6b7280' }}>{selected.movement_pattern}</span>
             )}
           </div>
 
@@ -128,10 +163,10 @@ export default function ExerciseLibrary({ onBack }: Props) {
 
   // ── List view ─────────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', background: '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '20px' }}>
-      <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+    <div style={{ minHeight: '100vh', background: darkMode ? '#111827' : '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '20px' }}>
+      <div style={{ background: darkMode ? '#1f2937' : '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
         <button onClick={onBack} style={btnStyle}>← Back</button>
-        <div style={{ fontSize: '16px', fontWeight: 600, color: '#111827' }}>Exercise library</div>
+        <div style={{ fontSize: '16px', fontWeight: 600, color: darkMode ? '#f9fafb' : '#111827' }}>Exercise library</div>
       </div>
 
       {/* Search */}
@@ -139,21 +174,30 @@ export default function ExerciseLibrary({ onBack }: Props) {
         <input
           type="text" placeholder="Search exercises..."
           value={search} onChange={e => setSearch(e.target.value)}
-          style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '14px', boxSizing: 'border-box', color: '#111827' }}
+          style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, fontSize: '14px', boxSizing: 'border-box', color: darkMode ? '#f9fafb' : '#111827' }}
         />
       </div>
 
-      {/* Muscle filter */}
+      {/* Muscle group filter */}
       <div style={{ padding: '10px 16px 0', display: 'flex', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none' }}>
-        {MUSCLES.map(m => (
-          <div key={m} onClick={() => setMuscle(m)} style={{
+        {MUSCLE_GROUPS.map(g => (
+          <div key={g.label} onClick={() => { setMuscle(g.label); setSubMuscle(null) }} style={{
             flexShrink: 0, padding: '5px 12px', borderRadius: '20px', fontSize: '12px', cursor: 'pointer',
-            border: '1px solid ' + (muscle === m ? '#1D9E75' : '#e5e7eb'),
-            background: muscle === m ? '#E1F5EE' : '#fff',
-            color: muscle === m ? '#085041' : '#6b7280',
-          }}>{m}</div>
+            border: '1px solid ' + (muscle === g.label ? '#1D9E75' : '#e5e7eb'),
+            background: muscle === g.label ? '#E1F5EE' : '#fff',
+            color: muscle === g.label ? '#085041' : '#6b7280',
+          }}>{g.label}</div>
         ))}
       </div>
+      {/* Sub-muscle filter */}
+      {muscle !== 'All' && (MUSCLE_GROUPS.find(g => g.label === muscle)?.values.length ?? 0) > 1 && (
+        <div style={{ padding: '5px 16px 0', display: 'flex', gap: '5px', overflowX: 'auto', scrollbarWidth: 'none' }}>
+          <div onClick={() => setSubMuscle(null)} style={{ flexShrink: 0, padding: '3px 10px', borderRadius: '20px', fontSize: '11px', cursor: 'pointer', border: `1px solid ${subMuscle === null ? '#378ADD' : '#e5e7eb'}`, background: subMuscle === null ? '#E6F1FB' : '#fff', color: subMuscle === null ? '#185FA5' : '#9ca3af' }}>All {muscle}</div>
+          {MUSCLE_GROUPS.find(g => g.label === muscle)?.values.map(sub => (
+            <div key={sub} onClick={() => setSubMuscle(sub)} style={{ flexShrink: 0, padding: '3px 10px', borderRadius: '20px', fontSize: '11px', cursor: 'pointer', border: `1px solid ${subMuscle === sub ? '#378ADD' : '#e5e7eb'}`, background: subMuscle === sub ? '#E6F1FB' : '#fff', color: subMuscle === sub ? '#185FA5' : '#9ca3af' }}>{sub}</div>
+          ))}
+        </div>
+      )}
 
       {/* Difficulty filter */}
       <div style={{ padding: '8px 16px 0', display: 'flex', gap: '6px' }}>
@@ -170,7 +214,7 @@ export default function ExerciseLibrary({ onBack }: Props) {
 
       {/* Results */}
       <div style={{ padding: '12px 16px' }}>
-        <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '10px' }}>
+        <div style={{ fontSize: '12px', color: darkMode ? '#6b7280' : '#9ca3af', marginBottom: '10px' }}>
           {loading ? 'Loading...' : `${filtered.length} exercises`}
         </div>
 
@@ -180,15 +224,15 @@ export default function ExerciseLibrary({ onBack }: Props) {
             <div
               key={ex.id}
               onClick={() => setSelected(ex)}
-              style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px', padding: '12px 14px', marginBottom: '8px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              style={{ background: darkMode ? '#1f2937' : '#fff', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, borderRadius: '12px', padding: '12px 14px', marginBottom: '8px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
             >
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '14px', fontWeight: 500, color: '#111827' }}>{ex.name}</div>
+                <div style={{ fontSize: '14px', fontWeight: 500, color: darkMode ? '#f9fafb' : '#111827' }}>{ex.name}</div>
                 <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '8px', background: colors.bg, color: colors.text }}>{ex.primary_muscle}</span>
-                  {ex.difficulty && <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '8px', background: '#f3f4f6', color: '#6b7280', textTransform: 'capitalize' }}>{ex.difficulty}</span>}
+                  {ex.difficulty && <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '8px', background: darkMode ? '#374151' : '#f3f4f6', color: darkMode ? '#9ca3af' : '#6b7280', textTransform: 'capitalize' }}>{ex.difficulty}</span>}
                   {ex.equipment && ex.equipment.length > 0 && (
-                    <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '8px', background: '#f3f4f6', color: '#9ca3af' }}>{ex.equipment[0]}</span>
+                    <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '8px', background: darkMode ? '#374151' : '#f3f4f6', color: darkMode ? '#6b7280' : '#9ca3af' }}>{ex.equipment[0]}</span>
                   )}
                 </div>
               </div>
@@ -199,17 +243,4 @@ export default function ExerciseLibrary({ onBack }: Props) {
       </div>
     </div>
   )
-}
-
-const btnStyle: React.CSSProperties = {
-  padding: '6px 12px', borderRadius: '8px', border: '1px solid #e5e7eb',
-  background: '#fff', fontSize: '13px', color: '#374151', cursor: 'pointer', whiteSpace: 'nowrap',
-}
-const sectionCard: React.CSSProperties = {
-  background: '#fff', border: '1px solid #e5e7eb', borderRadius: '12px',
-  padding: '14px 16px', marginBottom: '12px',
-}
-const sectionLabel: React.CSSProperties = {
-  fontSize: '11px', fontWeight: 600, color: '#9ca3af',
-  textTransform: 'uppercase', letterSpacing: '0.5px',
 }
