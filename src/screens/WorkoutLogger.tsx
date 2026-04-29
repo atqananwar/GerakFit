@@ -321,12 +321,12 @@ export default function WorkoutLogger({ onBack }: Props) {
   }
 
   // ─── Exercise picker ───────────────────────────────────────
-  if (phase === 'pick' && sessionExercises.length === 0) {
+  if (phase === 'pick') {
     return (
       <div style={{ minHeight: '100vh', background: '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '20px' }}>
         <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button onClick={onBack} style={backBtnStyle}>← Back</button>
-          <div style={{ fontSize: '16px', fontWeight: 600, color: '#111827' }}>Pick exercises</div>
+          <button onClick={() => sessionExercises.length > 0 ? setPhase('session') : onBack()} style={backBtnStyle}>← Back</button>
+          <div style={{ fontSize: '16px', fontWeight: 600, color: '#111827' }}>Add exercise</div>
         </div>
 
         <div style={{ padding: '14px 16px 0' }}>
@@ -435,7 +435,6 @@ export default function WorkoutLogger({ onBack }: Props) {
                 borderRadius: '8px',
                 background: suggestions[se.exercise.id].action === 'increase' ? '#E1F5EE' : suggestions[se.exercise.id].action === 'reduce' ? '#fef2f2' : '#f3f4f6',
                 borderLeft: '3px solid ' + (suggestions[se.exercise.id].action === 'increase' ? '#1D9E75' : suggestions[se.exercise.id].action === 'reduce' ? '#ef4444' : '#9ca3af'),
-
               }}>
                 <div style={{ fontSize: '11px', fontWeight: 600, color: suggestions[se.exercise.id].action === 'increase' ? '#085041' : suggestions[se.exercise.id].action === 'reduce' ? '#991b1b' : '#374151', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                   {suggestions[se.exercise.id].action === 'increase' ? 'Progress' : suggestions[se.exercise.id].action === 'reduce' ? 'Reduce' : 'Maintain'}
