@@ -67,7 +67,7 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
   const [weeklyStats, setWeeklyStats] = useState<WeeklyStats>({ sessionsThisWeek: 0, targetDays: 3 })
   const [activeNav, setActiveNav] = useState('dashboard')
   const [loading, setLoading] = useState(true)
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('gerakfit-dark') === 'true')
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('gerakfit-dark') !== 'false')
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const today = new Date()
 
@@ -199,9 +199,9 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
         <div style={{ background: card, border: `0.5px solid ${border}`, borderRadius: '14px', padding: '20px', marginBottom: '16px' }}>
           <div style={{ marginBottom: '14px' }}>
             <div style={{ fontSize: '13px', color: textSecondary, fontWeight: 500 }}>This week</div>
-            <div style={{ fontSize: '52px', fontWeight: 800, color: textPrimary, marginTop: '2px', letterSpacing: '-2px', lineHeight: 1 }}>
-              {weeklyStats.sessionsThisWeek}
-              <span style={{ fontSize: '14px', fontWeight: 400, color: '#333333' }}> / {weeklyStats.targetDays} sessions</span>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap', marginTop: '2px' }}>
+              <span style={{ fontSize: '52px', fontWeight: 800, color: textPrimary, letterSpacing: '-2px', lineHeight: 1 }}>{weeklyStats.sessionsThisWeek}</span>
+              <span style={{ fontSize: '16px', fontWeight: 400, color: '#9ca3af' }}> /{weeklyStats.targetDays} sessions</span>
             </div>
           </div>
           <div style={{ background: surfaceBg, borderRadius: '4px', height: '3px', marginBottom: '14px' }}>

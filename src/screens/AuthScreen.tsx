@@ -16,7 +16,7 @@ interface Props {
 }
 
 export default function AuthScreen({ onSuccess }: Props) {
-  const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') === 'true')
+  const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') !== 'false')
   useEffect(() => { document.body.style.background = darkMode ? '#000000' : '#f9fafb' }, [darkMode])
   const [mode, setMode] = useState<Mode>('login')
   const [form, setForm] = useState<FormState>({ fullName: '', email: '', password: '', confirmPassword: '' })

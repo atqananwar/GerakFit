@@ -152,7 +152,7 @@ function getDefaultSets(ex: Exercise) {
 }
 
 export default function ProgramBuilder({ onBack }: Props) {
-  const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') === 'true')
+  const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') !== 'false')
   useEffect(() => { document.body.style.background = darkMode ? '#111827' : '#f9fafb' }, [darkMode])
   const { user } = useAuth()
   const [phase, setPhase] = useState<Phase>('home')

@@ -1,7 +1,7 @@
 // Shared dark mode hook and color tokens for GerakFit
 
 export function getDarkMode(): boolean {
-  return localStorage.getItem('gerakfit-dark') === 'true'
+  return localStorage.getItem('gerakfit-dark') !== 'false'
 }
 
 export function setDarkMode(value: boolean) {
