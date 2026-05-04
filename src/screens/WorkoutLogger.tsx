@@ -47,7 +47,7 @@ function newSet(num: number): SetLog {
 
 export default function WorkoutLogger({ onBack }: Props) {
   const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') === 'true')
-  useEffect(() => { document.body.style.background = darkMode ? '#111827' : '#f9fafb' }, [darkMode])
+  useEffect(() => { document.body.style.background = darkMode ? '#000000' : '#f9fafb' }, [darkMode])
   const { user } = useAuth()
   const [phase, setPhase] = useState<'pick' | 'session'>('pick')
   const [exercises, setExercises] = useState<Exercise[]>([])
@@ -318,25 +318,25 @@ export default function WorkoutLogger({ onBack }: Props) {
   }
 
   const backBtnStyle: React.CSSProperties = {
-    padding: '6px 12px', borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`,
-    background: darkMode ? '#1f2937' : '#fff', fontSize: '13px', color: darkMode ? '#d1d5db' : '#374151', cursor: 'pointer',
+    background: 'none', border: 'none', fontSize: '14px', color: '#444', cursor: 'pointer', padding: '4px 0',
   }
   const setInputStyle: React.CSSProperties = {
-    width: '100%', padding: '7px 6px', borderRadius: '7px',
-    border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, fontSize: '13px', textAlign: 'center',
-    boxSizing: 'border-box', color: darkMode ? '#f9fafb' : '#111827',
+    width: '100%', padding: '10px 0', borderRadius: '8px',
+    border: '0.5px solid #1a1a1a', fontSize: '16px', fontWeight: 700, textAlign: 'center',
+    boxSizing: 'border-box', color: '#ffffff', background: '#000000',
   }
 
   const totalCompletedSets = sessionExercises.reduce((acc, se) => acc + se.sets.filter(s => s.completed).length, 0)
+  const totalVolume = sessionExercises.reduce((acc, se) => acc + se.sets.filter(s => s.completed && s.weight_kg !== null && s.reps !== null).reduce((a, s) => a + (s.weight_kg ?? 0) * (s.reps ?? 0), 0), 0)
 
   // ─── PR Celebration ──────────────────────────────────────
   if (showPRCelebration) {
     return (
-      <div style={{ minHeight: '100vh', background: darkMode ? '#111827' : '#f9fafb', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-        <div style={{ background: darkMode ? '#1f2937' : '#fff', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, borderRadius: '20px', padding: '32px 24px', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
+      <div style={{ minHeight: '100vh', background: darkMode ? '#000000' : '#f9fafb', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+        <div style={{ background: darkMode ? '#111111' : '#fff', border: `0.5px solid ${darkMode ? '#1a1a1a' : '#e5e7eb'}`, borderRadius: '20px', padding: '32px 24px', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
           <div style={{ fontSize: '48px', marginBottom: '12px' }}>🏆</div>
           <div style={{ fontSize: '22px', fontWeight: 700, color: darkMode ? '#f9fafb' : '#111827', marginBottom: '6px' }}>New personal records!</div>
-          <div style={{ fontSize: '13px', color: darkMode ? '#9ca3af' : '#6b7280', marginBottom: '24px' }}>You crushed it today.</div>
+          <div style={{ fontSize: '13px', color: darkMode ? '#555555' : '#444444', marginBottom: '24px' }}>You crushed it today.</div>
           {newPRs.map((pr, i) => (
             <div key={i} style={{ background: '#E1F5EE', borderRadius: '12px', padding: '12px 16px', marginBottom: '10px', textAlign: 'left' }}>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#085041' }}>{pr.exercise_name}</div>
@@ -357,8 +357,8 @@ export default function WorkoutLogger({ onBack }: Props) {
   // ─── Exercise picker ───────────────────────────────────────
   if (phase === 'pick') {
     return (
-      <div style={{ minHeight: '100vh', background: darkMode ? '#111827' : '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '20px' }}>
-        <div style={{ background: darkMode ? '#1f2937' : '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ minHeight: '100vh', background: darkMode ? '#000000' : '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '20px' }}>
+        <div style={{ background: darkMode ? '#000000' : '#fff', borderBottom: `0.5px solid ${darkMode ? '#1a1a1a' : '#e5e7eb'}`, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button onClick={() => sessionExercises.length > 0 ? setPhase('session') : onBack()} style={backBtnStyle}>← Back</button>
           <div style={{ fontSize: '16px', fontWeight: 600, color: darkMode ? '#f9fafb' : '#111827' }}>Add exercise</div>
         </div>
@@ -367,45 +367,39 @@ export default function WorkoutLogger({ onBack }: Props) {
           <input
             type="text" placeholder="Search exercises..."
             value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-            style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, fontSize: '14px', boxSizing: 'border-box' }}
+            style={{ width: '100%', padding: '12px 14px', borderRadius: '10px', border: darkMode ? '0.5px solid #1a1a1a' : '0.5px solid #e5e7eb', background: darkMode ? '#111111' : '#fff', fontSize: '14px', boxSizing: 'border-box', color: darkMode ? '#ffffff' : '#111827' }}
           />
         </div>
 
         <div style={{ padding: '10px 16px 0', display: 'flex', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none' }}>
           {MUSCLE_GROUPS.map(g => (
             <div key={g.label} onClick={() => { setMuscleFilter(g.label); setSubMuscleFilter(null) }} style={{
-              flexShrink: 0, padding: '5px 12px', borderRadius: '20px', fontSize: '12px', cursor: 'pointer',
-              border: '1px solid ' + (muscleFilter === g.label ? '#1D9E75' : '#e5e7eb'),
-              background: muscleFilter === g.label ? '#E1F5EE' : '#fff',
-              color: muscleFilter === g.label ? '#085041' : '#6b7280',
+              flexShrink: 0, height: '36px', padding: '0 14px', borderRadius: '20px', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center',
+              border: muscleFilter === g.label ? 'none' : (darkMode ? '0.5px solid #1a1a1a' : '0.5px solid #e5e7eb'),
+              background: muscleFilter === g.label ? '#1D9E75' : (darkMode ? '#111111' : '#f3f4f6'),
+              color: muscleFilter === g.label ? '#fff' : (darkMode ? '#444' : '#6b7280'),
             }}>{g.label}</div>
           ))}
         </div>
         {/* Sub-muscle filter */}
         {muscleFilter !== 'All' && (MUSCLE_GROUPS.find(g => g.label === muscleFilter)?.values.length ?? 0) > 1 && (
           <div style={{ padding: '6px 16px 0', display: 'flex', gap: '5px', overflowX: 'auto', scrollbarWidth: 'none' }}>
-            <div onClick={() => setSubMuscleFilter(null)} style={{ flexShrink: 0, padding: '3px 10px', borderRadius: '20px', fontSize: '11px', cursor: 'pointer', border: `1px solid ${subMuscleFilter === null ? '#378ADD' : '#e5e7eb'}`, background: subMuscleFilter === null ? '#E6F1FB' : '#fff', color: subMuscleFilter === null ? '#185FA5' : '#9ca3af' }}>All {muscleFilter}</div>
+            <div onClick={() => setSubMuscleFilter(null)} style={{ flexShrink: 0, height: '30px', padding: '0 12px', borderRadius: '20px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', border: subMuscleFilter === null ? 'none' : (darkMode ? '0.5px solid #1a1a1a' : '0.5px solid #e5e7eb'), background: subMuscleFilter === null ? '#1D9E75' : (darkMode ? '#111111' : '#f3f4f6'), color: subMuscleFilter === null ? '#fff' : (darkMode ? '#444' : '#6b7280') }}>All {muscleFilter}</div>
             {MUSCLE_GROUPS.find(g => g.label === muscleFilter)?.values.map(sub => (
-              <div key={sub} onClick={() => setSubMuscleFilter(sub)} style={{ flexShrink: 0, padding: '3px 10px', borderRadius: '20px', fontSize: '11px', cursor: 'pointer', border: `1px solid ${subMuscleFilter === sub ? '#378ADD' : '#e5e7eb'}`, background: subMuscleFilter === sub ? '#E6F1FB' : '#fff', color: subMuscleFilter === sub ? '#185FA5' : '#9ca3af' }}>{sub}</div>
+              <div key={sub} onClick={() => setSubMuscleFilter(sub)} style={{ flexShrink: 0, height: '30px', padding: '0 12px', borderRadius: '20px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', border: subMuscleFilter === sub ? 'none' : (darkMode ? '0.5px solid #1a1a1a' : '0.5px solid #e5e7eb'), background: subMuscleFilter === sub ? '#1D9E75' : (darkMode ? '#111111' : '#f3f4f6'), color: subMuscleFilter === sub ? '#fff' : (darkMode ? '#444' : '#6b7280') }}>{sub}</div>
             ))}
           </div>
         )}
 
         <div style={{ padding: '12px 16px' }}>
-          <div style={{ fontSize: '12px', color: darkMode ? '#6b7280' : '#9ca3af', marginBottom: '10px' }}>{filteredExercises.length} exercises</div>
+          <div style={{ fontSize: '12px', color: darkMode ? '#444' : '#9ca3af', marginBottom: '10px' }}>{filteredExercises.length} exercises</div>
           {filteredExercises.map(ex => (
-            <div key={ex.id} style={{ background: darkMode ? '#1f2937' : '#fff', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, borderRadius: '12px', padding: '12px 14px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div key={ex.id} style={{ background: darkMode ? '#111111' : '#fff', border: darkMode ? '0.5px solid #1a1a1a' : '0.5px solid #e5e7eb', borderRadius: '10px', padding: '14px 16px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontSize: '14px', fontWeight: 500, color: darkMode ? '#f9fafb' : '#111827' }}>{ex.name}</div>
-                <div style={{ display: 'flex', gap: '5px', marginTop: '4px', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '11px', background: '#E1F5EE', color: '#085041', padding: '2px 7px', borderRadius: '8px' }}>{ex.primary_muscle}</span>
-                  {ex.difficulty && <span style={{ fontSize: '11px', background: darkMode ? '#374151' : '#f3f4f6', color: darkMode ? '#9ca3af' : '#6b7280', padding: '2px 7px', borderRadius: '8px', textTransform: 'capitalize' }}>{ex.difficulty}</span>}
+                <div style={{ fontSize: '14px', fontWeight: 600, color: darkMode ? '#ffffff' : '#111827' }}>{ex.name}</div>
+                <div style={{ fontSize: '11px', color: darkMode ? '#444' : '#6b7280', marginTop: '3px' }}>
+                  {ex.primary_muscle}{ex.equipment && ex.equipment.length > 0 ? ` · ${ex.equipment[0]}` : ''}
                 </div>
-                {ex.secondary_muscles && ex.secondary_muscles.length > 0 && (
-                  <div style={{ fontSize: '11px', color: darkMode ? '#6b7280' : '#9ca3af', marginTop: '3px' }}>
-                    Also hits: {ex.secondary_muscles.slice(0, 3).join(', ')}
-                  </div>
-                )}
               </div>
               <button onClick={() => addExercise(ex)} style={{ padding: '7px 14px', borderRadius: '8px', background: '#1D9E75', border: 'none', color: '#fff', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
                 Add
@@ -419,26 +413,23 @@ export default function WorkoutLogger({ onBack }: Props) {
 
   // ─── Active session ────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', background: darkMode ? '#111827' : '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '100px' }}>
+    <div style={{ minHeight: '100vh', background: darkMode ? '#000000' : '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '100px' }}>
 
       {/* Session header */}
-      <div style={{ background: darkMode ? '#1f2937' : '#fff', borderBottom: '1px solid #e5e7eb', padding: '12px 16px' }}>
+      <div style={{ background: darkMode ? '#000000' : '#fff', borderBottom: `0.5px solid ${darkMode ? '#1a1a1a' : '#e5e7eb'}`, padding: '12px 16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <button
               onClick={() => { if (confirm('Leave workout? Progress will be lost.')) onBack() }}
-              style={{ padding: '6px 10px', borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, background: darkMode ? '#1f2937' : '#fff', fontSize: '13px', color: darkMode ? '#d1d5db' : '#374151', cursor: 'pointer' }}
+              style={{ background: 'none', border: 'none', fontSize: '14px', color: '#444', cursor: 'pointer', padding: '4px 0' }}
             >← Back</button>
-            <div>
-              <div style={{ fontSize: '15px', fontWeight: 700, color: darkMode ? '#f9fafb' : '#111827' }}>Active workout</div>
-              <div style={{ fontSize: '12px', color: darkMode ? '#9ca3af' : '#6b7280', marginTop: '1px' }}>{formatElapsed(elapsed)} · {totalCompletedSets} sets done</div>
-            </div>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: darkMode ? '#f9fafb' : '#111827' }}>Active workout</div>
           </div>
           <button
             onClick={finishWorkout}
             disabled={saving || totalCompletedSets === 0}
             style={{
-              padding: '8px 16px', borderRadius: '8px', border: 'none', fontSize: '13px', fontWeight: 600, cursor: totalCompletedSets > 0 ? 'pointer' : 'not-allowed',
+              padding: '8px 20px', borderRadius: '10px', border: 'none', fontSize: '14px', fontWeight: 800, cursor: totalCompletedSets > 0 ? 'pointer' : 'not-allowed',
               background: totalCompletedSets > 0 ? '#1D9E75' : '#9FE1CB', color: '#fff',
             }}
           >
@@ -447,32 +438,61 @@ export default function WorkoutLogger({ onBack }: Props) {
         </div>
       </div>
 
-      {/* Rest timer banner */}
+      {/* Live stats bar */}
+      <div style={{ background: '#000000', borderBottom: '0.5px solid #1a1a1a', padding: '10px 20px', display: 'flex', alignItems: 'center' }}>
+        <div style={{ flex: 1, textAlign: 'center' }}>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#1D9E75' }}>{formatElapsed(elapsed)}</div>
+          <div style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '1px', color: '#444' }}>Duration</div>
+        </div>
+        <div style={{ width: '0.5px', background: '#1a1a1a', alignSelf: 'stretch' }} />
+        <div style={{ flex: 1, textAlign: 'center' }}>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#ffffff' }}>{totalVolume.toLocaleString()}</div>
+          <div style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '1px', color: '#444' }}>Volume kg</div>
+        </div>
+        <div style={{ width: '0.5px', background: '#1a1a1a', alignSelf: 'stretch' }} />
+        <div style={{ flex: 1, textAlign: 'center' }}>
+          <div style={{ fontSize: '20px', fontWeight: 800, color: '#ffffff' }}>{totalCompletedSets}</div>
+          <div style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '1px', color: '#444' }}>Sets</div>
+        </div>
+      </div>
+
+      {/* Rest timer bar */}
       {restActive && restTimer !== null && (
-        <div style={{ background: '#1D9E75', padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ color: '#fff', fontSize: '14px', fontWeight: 500 }}>Rest · {restTimer}s</div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={() => startRest((restTimer ?? 0) + 30)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>+30s</button>
-            <button onClick={skipRest} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>Skip</button>
+        <div style={{ margin: '10px 16px 0', background: '#111111', border: '0.5px solid #1D9E75', borderRadius: '10px', padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ fontSize: '11px', color: '#1D9E75', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rest</div>
+            <div style={{ fontSize: '22px', fontWeight: 800, color: '#1D9E75' }}>{restTimer}s</div>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button onClick={() => startRest((restTimer ?? 0) + 30)} style={{ background: 'rgba(29,158,117,0.15)', border: 'none', color: '#1D9E75', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>+30s</button>
+            <button onClick={skipRest} style={{ fontSize: '12px', color: '#444', background: 'none', border: 'none', cursor: 'pointer' }}>Skip</button>
           </div>
         </div>
       )}
 
       <div style={{ padding: '14px 16px' }}>
+        {/* Empty state */}
+        {sessionExercises.length === 0 && (
+          <div style={{ textAlign: 'center', paddingTop: '60px', paddingBottom: '20px' }}>
+            <div style={{ fontSize: '18px', fontWeight: 800, color: darkMode ? '#ffffff' : '#111827', marginBottom: '8px' }}>No exercises yet</div>
+            <div style={{ fontSize: '14px', color: '#444', marginBottom: '24px' }}>Tap below to add your first exercise</div>
+          </div>
+        )}
+
         {sessionExercises.map(se => (
-          <div key={se.localId} style={{ background: darkMode ? '#1f2937' : '#fff', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, borderRadius: '14px', marginBottom: '12px', overflow: 'hidden' }}>
+          <div key={se.localId} style={{ background: darkMode ? '#111111' : '#fff', border: darkMode ? '0.5px solid #1a1a1a' : '0.5px solid #e5e7eb', borderRadius: '12px', marginBottom: '12px', overflow: 'hidden' }}>
             {/* Exercise header */}
             <div
               onClick={() => setExpandedEx(expandedEx === se.localId ? null : se.localId)}
               style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
             >
               <div>
-                <div style={{ fontSize: '15px', fontWeight: 600, color: darkMode ? '#f9fafb' : '#111827' }}>{se.exercise.name}</div>
-                <div style={{ fontSize: '12px', color: darkMode ? '#9ca3af' : '#6b7280', marginTop: '2px' }}>
+                <div style={{ fontSize: '16px', fontWeight: 800, color: darkMode ? '#ffffff' : '#111827' }}>{se.exercise.name}</div>
+                <div style={{ fontSize: '11px', color: '#444', marginTop: '2px' }}>
                   {se.sets.filter(s => s.completed).length}/{se.sets.length} sets · {se.exercise.primary_muscle}
                 </div>
               </div>
-              <div style={{ fontSize: '12px', color: darkMode ? '#6b7280' : '#9ca3af' }}>{expandedEx === se.localId ? '▲' : '▼'}</div>
+              <div style={{ fontSize: '12px', color: darkMode ? '#444' : '#9ca3af' }}>{expandedEx === se.localId ? '▲' : '▼'}</div>
             </div>
 
             {/* Overload suggestion */}
@@ -484,10 +504,10 @@ export default function WorkoutLogger({ onBack }: Props) {
                 borderLeft: '3px solid ' + (suggestions[se.exercise.id].action === 'increase' ? '#1D9E75' : suggestions[se.exercise.id].action === 'reduce' ? '#ef4444' : '#9ca3af'),
                 borderRadius: '0 8px 8px 0',
               }}>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: suggestions[se.exercise.id].action === 'increase' ? '#085041' : suggestions[se.exercise.id].action === 'reduce' ? '#991b1b' : '#374151', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 600, color: suggestions[se.exercise.id].action === 'increase' ? '#085041' : suggestions[se.exercise.id].action === 'reduce' ? '#991b1b' : '#1a1a1a', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                   {suggestions[se.exercise.id].action === 'increase' ? 'Progress' : suggestions[se.exercise.id].action === 'reduce' ? 'Reduce' : 'Maintain'}
                 </div>
-                <div style={{ fontSize: '12px', color: darkMode ? '#d1d5db' : '#374151', marginTop: '2px' }}>{suggestions[se.exercise.id].reason}</div>
+                <div style={{ fontSize: '12px', color: darkMode ? '#d1d5db' : '#1a1a1a', marginTop: '2px' }}>{suggestions[se.exercise.id].reason}</div>
               </div>
             )}
 
@@ -497,24 +517,24 @@ export default function WorkoutLogger({ onBack }: Props) {
                 {/* Set header row */}
                 <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr 1fr 1fr 36px', gap: '6px', marginBottom: '6px' }}>
                   {['Set', 'kg', 'Reps', 'RPE', ''].map(h => (
-                    <div key={h} style={{ fontSize: '10px', fontWeight: 500, color: darkMode ? '#6b7280' : '#9ca3af', textAlign: 'center' }}>{h}</div>
+                    <div key={h} style={{ fontSize: '10px', fontWeight: 500, color: darkMode ? '#333' : '#9ca3af', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{h}</div>
                   ))}
                 </div>
 
                 {se.sets.map(set => (
                   <div key={set.id} style={{ display: 'grid', gridTemplateColumns: '28px 1fr 1fr 1fr 36px', gap: '6px', marginBottom: '6px', alignItems: 'center', opacity: set.completed ? 0.6 : 1 }}>
-                    <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: 500, color: set.completed ? '#1D9E75' : '#374151' }}>
+                    <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: 500, color: set.completed ? '#1D9E75' : (darkMode ? '#444' : '#374151') }}>
                       {set.completed ? '✓' : set.set_number}
                     </div>
                     <input
                       type="number" placeholder="0" value={set.weight_kg ?? ''} disabled={set.completed}
                       onChange={e => updateSet(se.localId, set.id, 'weight_kg', e.target.value ? Number(e.target.value) : null)}
-                      style={setInputStyle}
+                      style={set.completed ? { ...setInputStyle, background: '#1D9E75', border: 'none', color: '#ffffff' } : setInputStyle}
                     />
                     <input
                       type="number" placeholder="0" value={set.reps ?? ''} disabled={set.completed}
                       onChange={e => updateSet(se.localId, set.id, 'reps', e.target.value ? Number(e.target.value) : null)}
-                      style={setInputStyle}
+                      style={set.completed ? { ...setInputStyle, background: '#1D9E75', border: 'none', color: '#ffffff' } : setInputStyle}
                     />
                     <input
                       type="number" placeholder="—" min="1" max="10" value={set.rpe ?? ''} disabled={set.completed}
@@ -524,8 +544,8 @@ export default function WorkoutLogger({ onBack }: Props) {
                     <button
                       onClick={() => set.completed ? removeSet(se.localId, set.id) : (saveSetLocally(se, set), completeSet(se.localId, set.id))}
                       style={{
-                        width: '32px', height: '32px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '14px',
-                        background: set.completed ? '#fef2f2' : '#E1F5EE',
+                        width: '28px', height: '28px', borderRadius: '50%', border: set.completed ? 'none' : '0.5px solid #333', cursor: 'pointer', fontSize: '14px',
+                        background: set.completed ? '#fef2f2' : '#1a1a1a',
                         color: set.completed ? '#ef4444' : '#1D9E75',
                       }}
                     >
@@ -535,12 +555,12 @@ export default function WorkoutLogger({ onBack }: Props) {
                 ))}
 
                 <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-                  <button onClick={() => addSet(se.localId)} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px dashed #d1d5db', background: darkMode ? '#1f2937' : '#fff', fontSize: '13px', color: darkMode ? '#9ca3af' : '#6b7280', cursor: 'pointer' }}>
+                  <button onClick={() => addSet(se.localId)} style={{ flex: 1, background: darkMode ? '#111111' : '#fff', border: darkMode ? '0.5px solid #1a1a1a' : '0.5px solid #e5e7eb', borderRadius: '8px', padding: '10px', textAlign: 'center', fontSize: '13px', color: '#1D9E75', fontWeight: 600, cursor: 'pointer' }}>
                     + Add set
                   </button>
                   <button
                     onClick={() => setSessionExercises(prev => prev.filter(x => x.localId !== se.localId))}
-                    style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #fee2e2', background: darkMode ? '#1f2937' : '#fff', fontSize: '13px', color: '#ef4444', cursor: 'pointer' }}
+                    style={{ padding: '8px 12px', borderRadius: '8px', border: '0.5px solid #fee2e2', background: darkMode ? '#111111' : '#fff', fontSize: '13px', color: '#ef4444', cursor: 'pointer' }}
                   >
                     Remove
                   </button>
@@ -553,9 +573,9 @@ export default function WorkoutLogger({ onBack }: Props) {
         {/* Add more exercises */}
         <button
           onClick={() => setPhase('pick')}
-          style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1.5px dashed #d1d5db', background: darkMode ? '#1f2937' : '#fff', fontSize: '14px', color: darkMode ? '#9ca3af' : '#6b7280', cursor: 'pointer' }}
+          style={{ width: '100%', padding: '16px', borderRadius: '12px', border: darkMode ? '0.5px solid #1a1a1a' : '0.5px solid #e5e7eb', background: darkMode ? '#111111' : '#fff', fontSize: '15px', fontWeight: 800, color: '#1D9E75', cursor: 'pointer' }}
         >
-          + Add exercise
+          + Add Exercise
         </button>
       </div>
     </div>

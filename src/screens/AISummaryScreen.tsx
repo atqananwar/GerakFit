@@ -21,7 +21,7 @@ interface WorkoutSummaryData {
 
 export default function AISummaryScreen({ onBack }: Props) {
   const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') === 'true')
-  useEffect(() => { document.body.style.background = darkMode ? '#111827' : '#f9fafb' }, [darkMode])
+  useEffect(() => { document.body.style.background = darkMode ? '#000000' : '#f9fafb' }, [darkMode])
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
@@ -158,21 +158,21 @@ Write the summary covering: (1) overall week performance, (2) what they did well
     }
   }
 
-  const BTN: React.CSSProperties = { padding: '6px 12px', borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, background: darkMode ? '#1f2937' : '#fff', fontSize: '13px', color: '#374151', cursor: 'pointer' }
-  const CARD: React.CSSProperties = { background: darkMode ? '#1f2937' : '#fff', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, borderRadius: '14px', padding: '16px 18px', marginBottom: '14px' }
-  const CTITLE: React.CSSProperties = { fontSize: '13px', fontWeight: 600, color: darkMode ? '#f9fafb' : '#111827', marginBottom: '12px' }
+  const BTN: React.CSSProperties = { background: 'none', border: 'none', fontSize: '14px', color: '#444', cursor: 'pointer', padding: '0' }
+  const CARD: React.CSSProperties = { background: darkMode ? '#111111' : '#fff', border: darkMode ? '0.5px solid #1a1a1a' : '0.5px solid #e5e7eb', borderRadius: '14px', padding: '16px 18px', marginBottom: '14px' }
+  const CTITLE: React.CSSProperties = { fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#555555', marginBottom: '12px' }
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: darkMode ? '#111827' : '#f9fafb', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: darkMode ? '#000000' : '#f9fafb', fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ fontSize: '13px', color: '#9ca3af' }}>Loading your data...</div>
     </div>
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: darkMode ? '#111827' : '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '32px' }}>
-      <div style={{ background: darkMode ? '#1f2937' : '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+    <div style={{ minHeight: '100vh', background: darkMode ? '#000000' : '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '32px' }}>
+      <div style={{ background: darkMode ? '#111111' : '#fff', borderBottom: darkMode ? '0.5px solid #1a1a1a' : '0.5px solid #e5e7eb', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
         <button onClick={onBack} style={BTN}>← Back</button>
-        <div style={{ fontSize: '16px', fontWeight: 600, color: darkMode ? '#f9fafb' : '#111827', flex: 1 }}>AI Weekly Summary</div>
+        <div style={{ fontSize: '18px', fontWeight: 800, color: darkMode ? '#f9fafb' : '#111827', flex: 1 }}>AI Weekly Summary</div>
       </div>
 
       <div style={{ padding: '20px 16px', maxWidth: '560px', margin: '0 auto' }}>
@@ -185,9 +185,9 @@ Write the summary covering: (1) overall week performance, (2) what they did well
             { label: 'Sets done', value: summaryData!.totalSetsThisWeek, sub: 'working sets' },
             { label: 'New PRs', value: summaryData!.prsThisWeek, sub: 'this week' },
           ].map(s => (
-            <div key={s.label} style={{ background: darkMode ? '#1f2937' : '#fff', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, borderRadius: '12px', padding: '14px 16px' }}>
-              <div style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{s.label}</div>
-              <div style={{ fontSize: '26px', fontWeight: 700, color: darkMode ? '#f9fafb' : '#111827', marginTop: '4px' }}>{s.value}</div>
+            <div key={s.label} style={{ background: darkMode ? '#111111' : '#fff', border: darkMode ? '0.5px solid #1a1a1a' : '0.5px solid #e5e7eb', borderRadius: '12px', padding: '14px 16px' }}>
+              <div style={{ fontSize: '10px', color: '#444', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{s.label}</div>
+              <div style={{ fontSize: '36px', fontWeight: 800, color: darkMode ? '#f9fafb' : '#111827', marginTop: '4px' }}>{s.value}</div>
               <div style={{ fontSize: '11px', color: darkMode ? '#9ca3af' : '#6b7280', marginTop: '1px' }}>{s.sub}</div>
             </div>
           ))}
@@ -206,7 +206,7 @@ Write the summary covering: (1) overall week performance, (2) what they did well
                     <span style={{ fontSize: '13px', color: darkMode ? '#f9fafb' : '#111827' }}>{muscle}</span>
                     <span style={{ fontSize: '12px', color: darkMode ? '#9ca3af' : '#6b7280' }}>{Math.round(vol).toLocaleString()} kg</span>
                   </div>
-                  <div style={{ background: darkMode ? '#374151' : '#f3f4f6', borderRadius: '4px', height: '5px' }}>
+                  <div style={{ background: darkMode ? '#1a1a1a' : '#f3f4f6', borderRadius: '4px', height: '5px' }}>
                     <div style={{ background: '#1D9E75', height: '5px', borderRadius: '4px', width: `${pct}%` }} />
                   </div>
                 </div>
@@ -220,7 +220,7 @@ Write the summary covering: (1) overall week performance, (2) what they did well
           <div style={CARD}>
             <div style={CTITLE}>PRs this week</div>
             {summaryData!.recentPRs.map((pr, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid #f3f4f6' }}>
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '0.5px solid #f3f4f6' }}>
                 <span style={{ fontSize: '13px', color: darkMode ? '#f9fafb' : '#111827' }}>{pr.exercise}</span>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: '12px', fontWeight: 600, color: '#1D9E75' }}>{pr.value}</div>
@@ -235,11 +235,11 @@ Write the summary covering: (1) overall week performance, (2) what they did well
         <div style={CARD}>
           <div style={CTITLE}>Muscle balance</div>
           <div style={{ display: 'flex', gap: '10px' }}>
-            <div style={{ flex: 1, background: '#E1F5EE', borderRadius: '10px', padding: '10px 12px' }}>
-              <div style={{ fontSize: '10px', fontWeight: 600, color: '#0F6E56', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Most trained</div>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: '#085041', marginTop: '3px' }}>{summaryData!.mostTrainedMuscle}</div>
+            <div style={{ flex: 1, background: darkMode ? '#111111' : '#E1F5EE', border: darkMode ? '0.5px solid #1D9E75' : 'none', borderRadius: '10px', padding: '10px 12px' }}>
+              <div style={{ fontSize: '10px', fontWeight: 600, color: darkMode ? '#1D9E75' : '#0F6E56', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Most trained</div>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: darkMode ? '#1D9E75' : '#085041', marginTop: '3px' }}>{summaryData!.mostTrainedMuscle}</div>
             </div>
-            <div style={{ flex: 1, background: '#fef2f2', borderRadius: '10px', padding: '10px 12px' }}>
+            <div style={{ flex: 1, background: darkMode ? '#111111' : '#fef2f2', border: darkMode ? '0.5px solid #444' : 'none', borderRadius: '10px', padding: '10px 12px' }}>
               <div style={{ fontSize: '10px', fontWeight: 600, color: '#991b1b', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Needs attention</div>
               <div style={{ fontSize: '14px', fontWeight: 600, color: '#7f1d1d', marginTop: '3px' }}>{summaryData!.leastTrainedMuscle}</div>
             </div>
@@ -255,7 +255,7 @@ Write the summary covering: (1) overall week performance, (2) what they did well
               <div style={{ fontSize: '13px', color: darkMode ? '#9ca3af' : '#6b7280', marginBottom: '14px', lineHeight: 1.6 }}>
                 Get a personalized analysis of your week — what you did well, what needs work, and what to focus on next.
               </div>
-              <button onClick={generateAISummary} style={{ padding: '11px 24px', borderRadius: '10px', background: '#1D9E75', border: 'none', color: '#fff', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>
+              <button onClick={generateAISummary} style={{ padding: '13px 28px', borderRadius: '10px', background: '#1D9E75', border: 'none', color: '#fff', fontSize: '15px', fontWeight: 800, cursor: 'pointer' }}>
                 Generate summary
               </button>
             </div>
@@ -281,12 +281,12 @@ Write the summary covering: (1) overall week performance, (2) what they did well
 
           {aiSummary && (
             <>
-              <div style={{ fontSize: '14px', color: '#374151', lineHeight: 1.75, marginTop: '8px' }}>
+              <div style={{ fontSize: '14px', color: darkMode ? '#cccccc' : '#374151', lineHeight: 1.75, marginTop: '8px' }}>
                 {aiSummary.split('\n\n').map((para, i) => (
                   <p key={i} style={{ marginBottom: '12px', margin: '0 0 12px' }}>{para}</p>
                 ))}
               </div>
-              <button onClick={generateAISummary} style={{ marginTop: '12px', fontSize: '12px', color: '#9ca3af', background: 'none', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>
+              <button onClick={generateAISummary} style={{ marginTop: '12px', fontSize: '12px', color: '#9ca3af', background: 'none', border: darkMode ? '0.5px solid #1a1a1a' : '0.5px solid #e5e7eb', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>
                 Regenerate
               </button>
             </>

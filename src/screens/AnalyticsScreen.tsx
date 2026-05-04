@@ -46,11 +46,11 @@ const MUSCLE_COLORS: Record<string, string> = {
   Mobility: '#888780',
 }
 
-const DEFAULT_COLOR = '#9ca3af'
+const DEFAULT_COLOR = '#555555'
 
 export default function AnalyticsScreen({ onBack }: Props) {
   const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') === 'true')
-  useEffect(() => { document.body.style.background = darkMode ? '#111827' : '#f9fafb' }, [darkMode])
+  useEffect(() => { document.body.style.background = darkMode ? '#000000' : '#f9fafb' }, [darkMode])
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'volume' | 'consistency' | 'muscles'>('volume')
@@ -271,38 +271,37 @@ export default function AnalyticsScreen({ onBack }: Props) {
   }
 
   const btnStyle: React.CSSProperties = {
-    padding: '6px 12px', borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`,
-    background: darkMode ? '#1f2937' : '#fff', fontSize: '13px', color: darkMode ? '#d1d5db' : '#374151', cursor: 'pointer',
+    background: 'none', border: 'none', fontSize: '14px', color: '#444', cursor: 'pointer', padding: '0',
   }
   const cardStyle: React.CSSProperties = {
-    background: darkMode ? '#1f2937' : '#fff', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, borderRadius: '14px',
+    background: darkMode ? '#111111' : '#fff', border: darkMode ? '0.5px solid #1a1a1a' : '0.5px solid #e5e7eb', borderRadius: '14px',
     padding: '16px 18px', marginBottom: '14px',
   }
   const cardTitle: React.CSSProperties = {
-    fontSize: '13px', fontWeight: 600, color: darkMode ? '#f9fafb' : '#111827', marginBottom: '12px',
+    fontSize: '14px', fontWeight: 700, color: '#555', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px',
   }
   const emptyStyle: React.CSSProperties = {
-    textAlign: 'center', padding: '24px 0', fontSize: '13px', color: '#9ca3af',
+    textAlign: 'center', padding: '24px 0', fontSize: '13px', color: '#555555',
   }
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: darkMode ? '#111827' : '#f9fafb', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: darkMode ? '#000000' : '#f9fafb', fontFamily: 'system-ui, sans-serif' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '22px', fontWeight: 700 }}>Gerak<span style={{ color: '#1D9E75' }}>Fit</span></div>
-          <div style={{ fontSize: '13px', color: '#9ca3af', marginTop: '8px' }}>Loading analytics...</div>
+          <div style={{ fontSize: '13px', color: '#555555', marginTop: '8px' }}>Loading analytics...</div>
         </div>
       </div>
     )
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: darkMode ? '#111827' : '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '32px' }}>
+    <div style={{ minHeight: '100vh', background: darkMode ? '#000000' : '#f9fafb', fontFamily: 'system-ui, sans-serif', paddingBottom: '32px' }}>
 
       {/* Header */}
-      <div style={{ background: darkMode ? '#1f2937' : '#fff', borderBottom: '1px solid #e5e7eb', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ background: darkMode ? '#000000' : '#fff', borderBottom: '0.5px solid #1a1a1a', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
         <button onClick={onBack} style={btnStyle}>← Back</button>
-        <div style={{ fontSize: '16px', fontWeight: 600, color: darkMode ? '#f9fafb' : '#111827' }}>Progress</div>
+        <div style={{ fontSize: '18px', fontWeight: 800, color: darkMode ? '#f9fafb' : '#111827' }}>Progress</div>
       </div>
 
       <div style={{ padding: '16px', maxWidth: '600px', margin: '0 auto' }}>
@@ -315,21 +314,21 @@ export default function AnalyticsScreen({ onBack }: Props) {
             { label: 'Volume this week', value: totalStats.totalVolume > 0 ? `${(totalStats.totalVolume / 1000).toFixed(1)}t` : '0', sub: 'kg lifted' },
             { label: 'Sets this week', value: totalStats.totalSets, sub: 'working sets' },
           ].map(stat => (
-            <div key={stat.label} style={{ background: darkMode ? '#1f2937' : '#fff', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, borderRadius: '12px', padding: '14px 16px' }}>
-              <div style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{stat.label}</div>
-              <div style={{ fontSize: '26px', fontWeight: 700, color: darkMode ? '#f9fafb' : '#111827', marginTop: '4px' }}>{stat.value}</div>
-              <div style={{ fontSize: '11px', color: darkMode ? '#9ca3af' : '#6b7280', marginTop: '1px' }}>{stat.sub}</div>
+            <div key={stat.label} style={{ background: darkMode ? '#111111' : '#fff', border: darkMode ? '0.5px solid #1a1a1a' : '0.5px solid #e5e7eb', borderRadius: '12px', padding: '14px 16px' }}>
+              <div style={{ fontSize: '10px', color: '#444', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{stat.label}</div>
+              <div style={{ fontSize: '36px', fontWeight: 800, color: darkMode ? '#f9fafb' : '#111827', marginTop: '4px' }}>{stat.value}</div>
+              <div style={{ fontSize: '11px', color: darkMode ? '#555555' : '#6b7280', marginTop: '1px' }}>{stat.sub}</div>
             </div>
           ))}
         </div>
 
         {/* Tab switcher */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: darkMode ? '#374151' : '#f3f4f6', borderRadius: '10px', padding: '4px', marginBottom: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: darkMode ? '#1a1a1a' : '#f3f4f6', borderRadius: '10px', padding: '4px', marginBottom: '16px' }}>
           {([['volume', 'Volume'], ['consistency', 'Consistency'], ['muscles', 'Muscles']] as const).map(([id, label]) => (
             <button key={id} onClick={() => setActiveTab(id)} style={{
-              padding: '8px', borderRadius: '8px', border: 'none', fontSize: '12px', fontWeight: 500, cursor: 'pointer',
-              background: activeTab === id ? '#fff' : 'transparent',
-              color: activeTab === id ? '#111827' : '#6b7280',
+              padding: '8px', borderRadius: '8px', border: 'none', fontSize: '12px', fontWeight: activeTab === id ? 600 : 500, cursor: 'pointer',
+              background: activeTab === id ? (darkMode ? '#222' : '#fff') : 'transparent',
+              color: activeTab === id ? (darkMode ? '#ffffff' : '#111827') : (darkMode ? '#444' : '#6b7280'),
               boxShadow: activeTab === id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
             }}>{label}</button>
           ))}
@@ -345,11 +344,11 @@ export default function AnalyticsScreen({ onBack }: Props) {
               ) : (
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={weeklyVolume} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-                    <XAxis dataKey="muscle" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+                    <XAxis dataKey="muscle" tick={{ fontSize: 10, fill: '#555555' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: '#555555' }} axisLine={false} tickLine={false} />
                     <Tooltip
                       formatter={(val) => [`${Number(val).toLocaleString()} kg`, 'Volume']}
-                      contentStyle={{ borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, fontSize: '12px' }}
+                      contentStyle={{ background: darkMode ? '#111111' : '#fff', borderRadius: '8px', border: darkMode ? '0.5px solid #1a1a1a' : '0.5px solid #e5e7eb', fontSize: '12px' }}
                     />
                     <Bar dataKey="volume" radius={[4, 4, 0, 0]}
                       fill="#1D9E75"
@@ -372,9 +371,9 @@ export default function AnalyticsScreen({ onBack }: Props) {
                     <div key={item.muscle} style={{ marginBottom: '12px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                         <span style={{ fontSize: '13px', fontWeight: 500, color: darkMode ? '#f9fafb' : '#111827' }}>{item.muscle}</span>
-                        <span style={{ fontSize: '12px', color: darkMode ? '#9ca3af' : '#6b7280' }}>{item.volume.toLocaleString()} kg · {item.sets} sets · {pct}%</span>
+                        <span style={{ fontSize: '12px', color: darkMode ? '#555555' : '#6b7280' }}>{item.volume.toLocaleString()} kg · {item.sets} sets · {pct}%</span>
                       </div>
-                      <div style={{ background: darkMode ? '#374151' : '#f3f4f6', borderRadius: '4px', height: '6px' }}>
+                      <div style={{ background: darkMode ? '#1a1a1a' : '#f3f4f6', borderRadius: '4px', height: '6px' }}>
                         <div style={{ background: color, height: '6px', borderRadius: '4px', width: `${pct}%`, transition: 'width 0.5s' }} />
                       </div>
                     </div>
@@ -394,16 +393,16 @@ export default function AnalyticsScreen({ onBack }: Props) {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px', marginTop: '12px' }}>
                 {last7Days.map((day, i) => (
                   <div key={i} style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '10px', color: '#9ca3af', marginBottom: '5px' }}>{day.label}</div>
+                    <div style={{ fontSize: '10px', color: '#555555', marginBottom: '5px' }}>{day.label}</div>
                     <div style={{
                       width: '36px', height: '36px', borderRadius: '8px', margin: '0 auto',
-                      background: day.completed ? '#1D9E75' : '#f3f4f6',
+                      background: day.completed ? '#1D9E75' : (darkMode ? '#1a1a1a' : '#f3f4f6'),
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
                       {day.completed && <span style={{ color: '#fff', fontSize: '14px' }}>✓</span>}
                     </div>
                     {day.completed && day.duration_minutes > 0 && (
-                      <div style={{ fontSize: '9px', color: darkMode ? '#9ca3af' : '#6b7280', marginTop: '3px' }}>{day.duration_minutes}m</div>
+                      <div style={{ fontSize: '9px', color: darkMode ? '#555555' : '#6b7280', marginTop: '3px' }}>{day.duration_minutes}m</div>
                     )}
                   </div>
                 ))}
@@ -418,12 +417,12 @@ export default function AnalyticsScreen({ onBack }: Props) {
               ) : (
                 <ResponsiveContainer width="100%" height={180}>
                   <LineChart data={last8Weeks} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                    <XAxis dataKey="week" tick={{ fontSize: 9, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-                    <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#1a1a1a' : '#f3f4f6'} />
+                    <XAxis dataKey="week" tick={{ fontSize: 9, fill: '#555555' }} axisLine={false} tickLine={false} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: '#555555' }} axisLine={false} tickLine={false} />
                     <Tooltip
                       formatter={(val) => [Number(val), 'Sessions']}
-                      contentStyle={{ borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, fontSize: '12px' }}
+                      contentStyle={{ background: darkMode ? '#111111' : '#fff', borderRadius: '8px', border: darkMode ? '0.5px solid #1a1a1a' : '0.5px solid #e5e7eb', fontSize: '12px' }}
                     />
                     <Line type="monotone" dataKey="sessions" stroke="#1D9E75" strokeWidth={2} dot={{ fill: '#1D9E75', r: 3 }} activeDot={{ r: 5 }} />
                   </LineChart>
@@ -450,15 +449,15 @@ export default function AnalyticsScreen({ onBack }: Props) {
                 const freshnessLabel = freshness === 'fresh' ? 'Trained recently' : freshness === 'ok' ? 'Needs attention' : 'Undertrained'
 
                 return (
-                  <div key={item.muscle} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: '1px solid #f3f4f6' }}>
+                  <div key={item.muscle} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 0', borderBottom: darkMode ? '0.5px solid #1a1a1a' : '0.5px solid #f3f4f6' }}>
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: color, flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ fontSize: '13px', fontWeight: 500, color: darkMode ? '#f9fafb' : '#111827' }}>{item.muscle}</span>
-                        <span style={{ fontSize: '11px', color: darkMode ? '#9ca3af' : '#6b7280' }}>{item.sessions} session{item.sessions !== 1 ? 's' : ''}</span>
+                        <span style={{ fontSize: '11px', color: darkMode ? '#555555' : '#6b7280' }}>{item.sessions} session{item.sessions !== 1 ? 's' : ''}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px' }}>
-                        <span style={{ fontSize: '11px', color: '#9ca3af' }}>Last: {formatDaysAgo(item.lastTrained)}</span>
+                        <span style={{ fontSize: '11px', color: '#444' }}>Last: {formatDaysAgo(item.lastTrained)}</span>
                         <span style={{ fontSize: '10px', fontWeight: 500, color: freshnessColor }}>{freshnessLabel}</span>
                       </div>
                     </div>

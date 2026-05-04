@@ -31,7 +31,7 @@ interface Props {
 
 export default function OnboardingScreen({ onComplete }: Props) {
   const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') === 'true')
-  useEffect(() => { document.body.style.background = darkMode ? '#111827' : '#f9fafb' }, [darkMode])
+  useEffect(() => { document.body.style.background = darkMode ? '#000000' : '#f9fafb' }, [darkMode])
   const { user } = useAuth()
   const [step, setStep] = useState(1)
   const totalSteps = 4
@@ -118,16 +118,16 @@ export default function OnboardingScreen({ onComplete }: Props) {
   ]
 
   const stepTitleStyle: React.CSSProperties = {
-    fontSize: '18px', fontWeight: 600, color: darkMode ? '#f9fafb' : '#111827', marginBottom: '6px',
+    fontSize: '26px', fontWeight: 800, color: darkMode ? '#ffffff' : '#111827', marginBottom: '6px',
   }
   const stepDescStyle: React.CSSProperties = {
-    fontSize: '13px', color: darkMode ? '#9ca3af' : '#6b7280', lineHeight: '1.5',
+    fontSize: '14px', color: '#444', lineHeight: '1.5',
   }
 
   return (
     <div style={{
       minHeight: '100vh',
-      background: darkMode ? '#111827' : '#f9fafb',
+      background: darkMode ? '#000000' : '#f9fafb',
       fontFamily: 'system-ui, sans-serif',
       display: 'flex',
       flexDirection: 'column',
@@ -136,7 +136,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
     }}>
       {/* Header */}
       <div style={{ width: '100%', maxWidth: '420px', marginBottom: '28px' }}>
-        <div style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.5px', marginBottom: '16px' }}>
+        <div style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '-0.5px', marginBottom: '16px' }}>
           Gerak<span style={{ color: '#1D9E75' }}>Fit</span>
         </div>
 
@@ -144,19 +144,19 @@ export default function OnboardingScreen({ onComplete }: Props) {
         <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
           {Array.from({ length: totalSteps }).map((_, i) => (
             <div key={i} style={{
-              flex: 1, height: '4px', borderRadius: '2px',
-              background: i < step ? '#1D9E75' : '#e5e7eb',
+              flex: 1, height: '3px', borderRadius: '2px',
+              background: i < step ? '#1D9E75' : (darkMode ? '#1a1a1a' : '#e5e7eb'),
               transition: 'background 0.3s',
             }} />
           ))}
         </div>
-        <div style={{ fontSize: '12px', color: '#9ca3af' }}>Step {step} of {totalSteps}</div>
+        <div style={{ fontSize: '11px', color: '#444', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Step {step} of {totalSteps}</div>
       </div>
 
       {/* Card */}
       <div style={{
-        background: darkMode ? '#1f2937' : '#fff',
-        border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`,
+        background: darkMode ? '#111111' : '#fff',
+        border: `0.5px solid ${darkMode ? '#1a1a1a' : '#e5e7eb'}`,
         borderRadius: '16px',
         padding: '24px',
         width: '100%',
@@ -175,8 +175,10 @@ export default function OnboardingScreen({ onComplete }: Props) {
                   onClick={() => setData(prev => ({ ...prev, goal: g.id }))}
                   style={{
                     ...optionStyle,
-                    borderColor: data.goal === g.id ? '#1D9E75' : '#e5e7eb',
-                    background: data.goal === g.id ? '#E1F5EE' : '#fff',
+                    border: darkMode
+                      ? (data.goal === g.id ? '1.5px solid #1D9E75' : '0.5px solid #1a1a1a')
+                      : (data.goal === g.id ? '1.5px solid #1D9E75' : '1.5px solid #e5e7eb'),
+                    background: darkMode ? '#111111' : (data.goal === g.id ? '#E1F5EE' : '#fff'),
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -187,8 +189,8 @@ export default function OnboardingScreen({ onComplete }: Props) {
                       flexShrink: 0,
                     }} />
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: 500, color: data.goal === g.id ? '#085041' : '#111827' }}>{g.label}</div>
-                      <div style={{ fontSize: '12px', color: data.goal === g.id ? '#0F6E56' : '#6b7280', marginTop: '1px' }}>{g.desc}</div>
+                      <div style={{ fontSize: '15px', fontWeight: 600, color: darkMode ? (data.goal === g.id ? '#1D9E75' : '#ffffff') : (data.goal === g.id ? '#085041' : '#111827') }}>{g.label}</div>
+                      <div style={{ fontSize: '12px', color: darkMode ? (data.goal === g.id ? '#1D9E75' : '#555555') : (data.goal === g.id ? '#0F6E56' : '#6b7280'), marginTop: '1px' }}>{g.desc}</div>
                     </div>
                   </div>
                 </div>
@@ -209,8 +211,10 @@ export default function OnboardingScreen({ onComplete }: Props) {
                   onClick={() => setData(prev => ({ ...prev, experience: e.id }))}
                   style={{
                     ...optionStyle,
-                    borderColor: data.experience === e.id ? '#1D9E75' : '#e5e7eb',
-                    background: data.experience === e.id ? '#E1F5EE' : '#fff',
+                    border: darkMode
+                      ? (data.experience === e.id ? '1.5px solid #1D9E75' : '0.5px solid #1a1a1a')
+                      : (data.experience === e.id ? '1.5px solid #1D9E75' : '1.5px solid #e5e7eb'),
+                    background: darkMode ? '#111111' : (data.experience === e.id ? '#E1F5EE' : '#fff'),
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -221,8 +225,8 @@ export default function OnboardingScreen({ onComplete }: Props) {
                       flexShrink: 0,
                     }} />
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: 500, color: data.experience === e.id ? '#085041' : '#111827' }}>{e.label}</div>
-                      <div style={{ fontSize: '12px', color: data.experience === e.id ? '#0F6E56' : '#6b7280', marginTop: '1px' }}>{e.desc}</div>
+                      <div style={{ fontSize: '15px', fontWeight: 600, color: darkMode ? (data.experience === e.id ? '#1D9E75' : '#ffffff') : (data.experience === e.id ? '#085041' : '#111827') }}>{e.label}</div>
+                      <div style={{ fontSize: '12px', color: darkMode ? (data.experience === e.id ? '#1D9E75' : '#555555') : (data.experience === e.id ? '#0F6E56' : '#6b7280'), marginTop: '1px' }}>{e.desc}</div>
                     </div>
                   </div>
                 </div>
@@ -240,7 +244,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
             <div style={{ marginTop: '24px' }}>
               <div style={sliderLabelStyle}>
                 <span>Days per week</span>
-                <span style={{ fontWeight: 600, color: '#1D9E75', fontSize: '18px' }}>{data.trainingDays}</span>
+                <span style={{ fontSize: '32px', fontWeight: 800, color: '#1D9E75', textTransform: 'none' }}>{data.trainingDays}</span>
               </div>
               <input
                 type="range" min="2" max="6" step="1"
@@ -256,7 +260,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
             <div style={{ marginTop: '24px' }}>
               <div style={sliderLabelStyle}>
                 <span>Session length</span>
-                <span style={{ fontWeight: 600, color: '#1D9E75', fontSize: '18px' }}>{data.sessionLength} min</span>
+                <span style={{ fontSize: '32px', fontWeight: 800, color: '#1D9E75', textTransform: 'none' }}>{data.sessionLength} min</span>
               </div>
               <input
                 type="range" min="30" max="120" step="15"
@@ -270,7 +274,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
             </div>
 
             <div style={{ marginTop: '24px' }}>
-              <label style={{ fontSize: '13px', fontWeight: 500, color: '#374151', display: 'block', marginBottom: '8px' }}>
+              <label style={{ fontSize: '13px', fontWeight: 500, color: darkMode ? '#555555' : '#374151', display: 'block', marginBottom: '8px' }}>
                 Any injuries or areas to avoid? <span style={{ fontWeight: 400, color: '#9ca3af' }}>(optional)</span>
               </label>
               <textarea
@@ -280,8 +284,9 @@ export default function OnboardingScreen({ onComplete }: Props) {
                 rows={3}
                 style={{
                   width: '100%', padding: '10px 12px',
-                  borderRadius: '8px', border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`,
+                  borderRadius: '8px', border: `0.5px solid ${darkMode ? '#1a1a1a' : '#e5e7eb'}`,
                   fontSize: '13px', color: darkMode ? '#f9fafb' : '#111827', resize: 'none',
+                  background: darkMode ? '#000000' : '#fff',
                   fontFamily: 'system-ui, sans-serif', boxSizing: 'border-box',
                 }}
               />
@@ -294,7 +299,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
           <>
             <div style={stepTitleStyle}>What equipment do you have?</div>
             <div style={stepDescStyle}>Select everything available at your gym. This filters exercise suggestions.</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '20px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '20px' }}>
               {EQUIPMENT_OPTIONS.map(eq => {
                 const selected = data.equipment.includes(eq.id)
                 return (
@@ -302,24 +307,23 @@ export default function OnboardingScreen({ onComplete }: Props) {
                     key={eq.id}
                     onClick={() => toggleEquipment(eq.id)}
                     style={{
-                      ...optionStyle,
-                      borderColor: selected ? '#1D9E75' : '#e5e7eb',
-                      background: selected ? '#E1F5EE' : '#fff',
+                      height: '44px', padding: '0 16px',
+                      display: 'flex', alignItems: 'center',
+                      borderRadius: '22px', cursor: 'pointer',
+                      transition: 'all 0.15s',
+                      background: selected ? '#1D9E75' : (darkMode ? '#111111' : '#f3f4f6'),
+                      border: selected ? 'none' : (darkMode ? '0.5px solid #1a1a1a' : '0.5px solid #e5e7eb'),
+                      fontSize: '14px', fontWeight: 500,
+                      color: selected ? '#fff' : (darkMode ? '#444' : '#374151'),
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{
-                        width: '18px', height: '18px', borderRadius: '4px',
-                        border: `2px solid ${selected ? '#1D9E75' : '#d1d5db'}`,
-                        background: selected ? '#1D9E75' : 'transparent',
-                        flexShrink: 0,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}>
+                      <div style={{ display: 'none' }}>
                         {selected && <span style={{ color: '#fff', fontSize: '11px', lineHeight: 1 }}>✓</span>}
                       </div>
                       <div>
-                        <div style={{ fontSize: '14px', fontWeight: 500, color: selected ? '#085041' : '#111827' }}>{eq.label}</div>
-                        <div style={{ fontSize: '12px', color: selected ? '#0F6E56' : '#6b7280', marginTop: '1px' }}>{eq.desc}</div>
+                        <div style={{ fontSize: '14px', fontWeight: 500 }}>{eq.label}</div>
+                        <div style={{ display: 'none' }}>{eq.desc}</div>
                       </div>
                     </div>
                   </div>
@@ -343,8 +347,8 @@ export default function OnboardingScreen({ onComplete }: Props) {
               onClick={() => setStep(s => s - 1)}
               style={{
                 flex: 1, padding: '11px', borderRadius: '10px',
-                border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`, background: darkMode ? '#1f2937' : '#fff',
-                fontSize: '14px', color: '#374151', cursor: 'pointer',
+                border: `0.5px solid ${darkMode ? '#1a1a1a' : '#e5e7eb'}`, background: darkMode ? '#111111' : '#fff',
+                fontSize: '14px', color: darkMode ? '#444444' : '#374151', cursor: 'pointer',
               }}
             >
               Back
@@ -354,10 +358,10 @@ export default function OnboardingScreen({ onComplete }: Props) {
             onClick={() => step < totalSteps ? setStep(s => s + 1) : handleFinish()}
             disabled={!canProceed() || saving}
             style={{
-              flex: 2, padding: '11px', borderRadius: '10px',
+              flex: 2, padding: '15px', borderRadius: '12px',
               border: 'none',
               background: canProceed() && !saving ? '#1D9E75' : '#9FE1CB',
-              color: '#fff', fontSize: '14px', fontWeight: 600,
+              color: '#fff', fontSize: '16px', fontWeight: 800,
               cursor: canProceed() && !saving ? 'pointer' : 'not-allowed',
               transition: 'background 0.15s',
             }}
@@ -377,5 +381,7 @@ const optionStyle: React.CSSProperties = {
 }
 const sliderLabelStyle: React.CSSProperties = {
   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-  fontSize: '13px', fontWeight: 500, color: '#374151', marginBottom: '10px',
+  fontSize: '11px', fontWeight: 500, color: '#444',
+  textTransform: 'uppercase', letterSpacing: '0.5px',
+  marginBottom: '10px',
 }

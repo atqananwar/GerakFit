@@ -243,29 +243,29 @@ export default function DailyChallengeScreen({ onBack }: Props) {
     const newChallenge = getChallengeByStreak(newStreak)
     const rankUp = newChallenge.difficulty !== challenge.difficulty
     return (
-      <div style={{ minHeight: '100vh', background: '#111827', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+      <div style={{ minHeight: '100vh', background: '#000000', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
         <div style={{ textAlign: 'center', maxWidth: '360px', width: '100%' }}>
           <div style={{ fontSize: '56px', marginBottom: '16px' }}>{rankUp ? '🎖️' : '⚔️'}</div>
-          <div style={{ fontSize: '24px', fontWeight: 700, color: '#f9fafb', marginBottom: '6px' }}>{rankUp ? 'RANK UP!' : 'Quest Complete'}</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: '#f9fafb', marginBottom: '6px' }}>{rankUp ? 'RANK UP!' : 'Quest Complete'}</div>
           <div style={{ fontSize: '14px', color: '#9ca3af', marginBottom: '28px' }}>{rankUp ? `You have ascended to Rank ${newChallenge.difficulty}!` : 'You have grown stronger.'}</div>
 
-          <div style={{ background: rankInfo.bg, border: `1px solid ${rankInfo.border}`, borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
+          <div style={{ background: rankInfo.bg, border: `0.5px solid ${rankInfo.border}`, borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
             <div style={{ fontSize: '12px', fontWeight: 600, color: rankInfo.text, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Rank {challenge.difficulty} — {challenge.name}</div>
-            <div style={{ fontSize: '32px', fontWeight: 700, color: rankInfo.text }}>+{challenge.xp} XP</div>
+            <div style={{ fontSize: '32px', fontWeight: 800, color: rankInfo.text }}>+{challenge.xp} XP</div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '24px' }}>
-            <div style={{ background: '#1f2937', borderRadius: '12px', padding: '14px' }}>
+            <div style={{ background: '#111111', borderRadius: '12px', padding: '14px' }}>
               <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total XP</div>
-              <div style={{ fontSize: '22px', fontWeight: 700, color: '#f9fafb', marginTop: '4px' }}>{(totalXP).toLocaleString()}</div>
+              <div style={{ fontSize: '36px', fontWeight: 800, color: '#1D9E75', marginTop: '4px' }}>{(totalXP).toLocaleString()}</div>
             </div>
-            <div style={{ background: '#1f2937', borderRadius: '12px', padding: '14px' }}>
+            <div style={{ background: '#111111', borderRadius: '12px', padding: '14px' }}>
               <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Streak</div>
               <div style={{ fontSize: '22px', fontWeight: 700, color: '#f9fafb', marginTop: '4px' }}>{newStreak}🔥</div>
             </div>
           </div>
 
-          <button onClick={onBack} style={{ width: '100%', padding: '14px', borderRadius: '12px', background: '#1D9E75', border: 'none', color: '#fff', fontSize: '15px', fontWeight: 700, cursor: 'pointer' }}>
+          <button onClick={onBack} style={{ width: '100%', padding: '14px', borderRadius: '12px', background: '#1D9E75', border: 'none', color: '#fff', fontSize: '15px', fontWeight: 800, cursor: 'pointer' }}>
             Return to base
           </button>
         </div>
@@ -276,27 +276,27 @@ export default function DailyChallengeScreen({ onBack }: Props) {
   // ── Active ───────────────────────────────────────────────
   if (phase === 'active') {
     return (
-      <div style={{ minHeight: '100vh', background: '#111827', fontFamily: 'system-ui, sans-serif', paddingBottom: '32px' }}>
-        <div style={{ background: '#1f2937', borderBottom: '1px solid #374151', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ minHeight: '100vh', background: '#000000', fontFamily: 'system-ui, sans-serif', paddingBottom: '32px' }}>
+        <div style={{ background: '#111111', borderBottom: '0.5px solid #374151', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ fontSize: '15px', fontWeight: 700, color: '#f9fafb' }}>{challenge.name}</div>
+            <div style={{ fontSize: '15px', fontWeight: 800, color: '#f9fafb' }}>{challenge.name}</div>
             <div style={{ fontSize: '12px', color: '#9ca3af', marginTop: '1px' }}>
               {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, '0')} · {completedSets}/{totalSets} sets
             </div>
           </div>
-          <button onClick={() => { if (confirm('Abandon quest?')) { if (elapsedRef.current) clearInterval(elapsedRef.current); onBack() } }} style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid #374151', background: 'transparent', color: '#9ca3af', fontSize: '12px', cursor: 'pointer' }}>
+          <button onClick={() => { if (confirm('Abandon quest?')) { if (elapsedRef.current) clearInterval(elapsedRef.current); onBack() } }} style={{ padding: '6px 12px', borderRadius: '8px', border: '0.5px solid #374151', background: 'transparent', color: '#9ca3af', fontSize: '12px', cursor: 'pointer' }}>
             Abandon
           </button>
         </div>
 
-        <div style={{ padding: '0 16px', background: '#1f2937', borderBottom: '1px solid #374151', paddingBottom: '10px', paddingTop: '8px' }}>
+        <div style={{ padding: '0 16px', background: '#111111', borderBottom: '0.5px solid #374151', paddingBottom: '10px', paddingTop: '8px' }}>
           <div style={{ background: '#374151', borderRadius: '4px', height: '4px' }}>
             <div style={{ background: rankInfo.text, height: '4px', borderRadius: '4px', width: `${overallProgress * 100}%`, transition: 'width 0.3s' }} />
           </div>
         </div>
 
         {restActive && restTimer !== null && (
-          <div style={{ background: rankInfo.bg, borderBottom: `1px solid ${rankInfo.border}`, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ background: rankInfo.bg, borderBottom: `0.5px solid ${rankInfo.border}`, padding: '10px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ color: rankInfo.text, fontSize: '14px', fontWeight: 600 }}>Rest · {restTimer}s</div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={() => startRest((restTimer ?? 0) + 30)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: rankInfo.text, padding: '4px 10px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}>+30s</button>
@@ -311,7 +311,7 @@ export default function DailyChallengeScreen({ onBack }: Props) {
             const isCurrent = i === currentEx
             const isDone = prog?.completed
             return (
-              <div key={i} style={{ background: isCurrent ? rankInfo.bg : isDone ? '#0a1a0a' : '#1f2937', border: `1px solid ${isCurrent ? rankInfo.border : isDone ? '#166534' : '#374151'}`, borderRadius: '14px', padding: '14px 16px', marginBottom: '10px', opacity: !isCurrent && !isDone && i > currentEx ? 0.4 : 1, transition: 'all 0.2s' }}>
+              <div key={i} style={{ background: isCurrent ? rankInfo.bg : isDone ? '#0a1a0a' : '#111111', border: `0.5px solid ${isCurrent ? rankInfo.border : isDone ? '#166534' : '#374151'}`, borderRadius: '14px', padding: '14px 16px', marginBottom: '10px', opacity: !isCurrent && !isDone && i > currentEx ? 0.4 : 1, transition: 'all 0.2s' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
@@ -336,7 +336,7 @@ export default function DailyChallengeScreen({ onBack }: Props) {
                   <button
                     onClick={completeSet}
                     disabled={restActive}
-                    style={{ width: '100%', marginTop: '12px', padding: '13px', borderRadius: '10px', background: restActive ? '#374151' : rankInfo.border, border: 'none', color: restActive ? '#6b7280' : '#fff', fontSize: '14px', fontWeight: 700, cursor: restActive ? 'not-allowed' : 'pointer', transition: 'background 0.2s' }}
+                    style={{ width: '100%', marginTop: '12px', padding: '14px', borderRadius: '10px', background: restActive ? '#374151' : rankInfo.border, border: 'none', color: restActive ? '#6b7280' : '#fff', fontSize: '15px', fontWeight: 800, cursor: restActive ? 'not-allowed' : 'pointer', transition: 'background 0.2s' }}
                   >
                     {restActive ? `Resting... ${restTimer}s` : `Complete set ${(prog?.setsDone ?? 0) + 1} of ${ex.sets}`}
                   </button>
@@ -351,10 +351,10 @@ export default function DailyChallengeScreen({ onBack }: Props) {
 
   // ── Home ─────────────────────────────────────────────────
   return (
-    <div style={{ minHeight: '100vh', background: '#111827', fontFamily: 'system-ui, sans-serif', paddingBottom: '32px' }}>
-      <div style={{ background: '#1f2937', borderBottom: '1px solid #374151', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <button onClick={onBack} style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid #374151', background: 'transparent', color: '#9ca3af', fontSize: '13px', cursor: 'pointer' }}>← Back</button>
-        <div style={{ fontSize: '16px', fontWeight: 700, color: '#f9fafb', flex: 1 }}>Daily Challenge</div>
+    <div style={{ minHeight: '100vh', background: '#000000', fontFamily: 'system-ui, sans-serif', paddingBottom: '32px' }}>
+      <div style={{ background: '#111111', borderBottom: '0.5px solid #374151', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', fontSize: '14px', color: '#444', cursor: 'pointer', padding: '0' }}>← Back</button>
+        <div style={{ fontSize: '16px', fontWeight: 800, color: '#f9fafb', flex: 1 }}>Daily Challenge</div>
         {streakDays > 0 && <div style={{ fontSize: '13px', color: '#fb923c' }}>{streakDays}🔥</div>}
       </div>
 
@@ -362,11 +362,11 @@ export default function DailyChallengeScreen({ onBack }: Props) {
 
         {/* XP + Streak */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
-          <div style={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '12px', padding: '14px 16px' }}>
+          <div style={{ background: '#111111', border: '0.5px solid #374151', borderRadius: '12px', padding: '14px 16px' }}>
             <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total XP</div>
-            <div style={{ fontSize: '24px', fontWeight: 700, color: '#f9fafb', marginTop: '4px' }}>{totalXP.toLocaleString()}</div>
+            <div style={{ fontSize: '36px', fontWeight: 800, color: '#1D9E75', marginTop: '4px' }}>{totalXP.toLocaleString()}</div>
           </div>
-          <div style={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '12px', padding: '14px 16px' }}>
+          <div style={{ background: '#111111', border: '0.5px solid #374151', borderRadius: '12px', padding: '14px 16px' }}>
             <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Streak</div>
             <div style={{ fontSize: '24px', fontWeight: 700, color: '#f9fafb', marginTop: '4px' }}>{streakDays} days 🔥</div>
           </div>
@@ -374,7 +374,7 @@ export default function DailyChallengeScreen({ onBack }: Props) {
 
         {/* Next rank progress */}
         {setsToNextRank !== null && (
-          <div style={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '12px', padding: '12px 16px', marginBottom: '16px' }}>
+          <div style={{ background: '#111111', border: '0.5px solid #374151', borderRadius: '12px', padding: '12px 16px', marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
               <span style={{ fontSize: '12px', color: '#9ca3af' }}>Progress to Rank {nextChallenge.difficulty}</span>
               <span style={{ fontSize: '12px', color: rankInfo.text }}>{streakDays}/{setsToNextRank} days</span>
@@ -386,29 +386,29 @@ export default function DailyChallengeScreen({ onBack }: Props) {
         )}
 
         {/* Today's challenge card */}
-        <div style={{ background: rankInfo.bg, border: `2px solid ${rankInfo.border}`, borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
+        <div style={{ background: '#111111', border: '0.5px solid #1a1a1a', borderRadius: '14px', padding: '20px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: '11px', fontWeight: 600, color: rankInfo.text, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Rank {challenge.difficulty} Quest</div>
-              <div style={{ fontSize: '20px', fontWeight: 700, color: '#f9fafb' }}>{challenge.name}</div>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#f9fafb' }}>{challenge.name}</div>
               <div style={{ fontSize: '13px', color: '#9ca3af', marginTop: '4px', fontStyle: 'italic' }}>"{challenge.description}"</div>
             </div>
-            <div style={{ background: rankInfo.border, borderRadius: '10px', padding: '10px 14px', textAlign: 'center', flexShrink: 0, marginLeft: '12px' }}>
-              <div style={{ fontSize: '22px', fontWeight: 700, color: '#fff' }}>{challenge.difficulty}</div>
-              <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rank</div>
+            <div style={{ background: rankInfo.border, borderRadius: '10px', padding: '14px 18px', textAlign: 'center', flexShrink: 0, marginLeft: '12px' }}>
+              <div style={{ fontSize: '48px', fontWeight: 800, color: '#fff', lineHeight: 1 }}>{challenge.difficulty}</div>
+              <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '4px' }}>Rank</div>
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '12px', background: 'rgba(255,255,255,0.1)', color: rankInfo.text, padding: '3px 10px', borderRadius: '20px' }}>+{challenge.xp} XP</span>
+            <span style={{ fontSize: '12px', background: '#111111', border: '0.5px solid #1D9E75', color: '#1D9E75', padding: '3px 10px', borderRadius: '20px' }}>+{challenge.xp} XP</span>
             <span style={{ fontSize: '12px', background: 'rgba(255,255,255,0.1)', color: rankInfo.text, padding: '3px 10px', borderRadius: '20px' }}>~{challenge.estimatedMinutes} min</span>
             <span style={{ fontSize: '12px', background: 'rgba(255,255,255,0.1)', color: rankInfo.text, padding: '3px 10px', borderRadius: '20px' }}>No equipment</span>
           </div>
 
           {challenge.exercises.map((ex, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: `1px solid ${rankInfo.border}` }}>
-              <span style={{ fontSize: '13px', color: '#d1d5db' }}>{ex.name}</span>
-              <span style={{ fontSize: '12px', color: rankInfo.text, fontWeight: 500 }}>
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '0.5px solid #1a1a1a' }}>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#d1d5db' }}>{ex.name}</span>
+              <span style={{ fontSize: '12px', color: '#ffffff', fontWeight: 700 }}>
                 {ex.sets} × {ex.reps ? `${ex.reps} reps` : `${ex.seconds}s`}
               </span>
             </div>
@@ -416,13 +416,13 @@ export default function DailyChallengeScreen({ onBack }: Props) {
         </div>
 
         {/* All ranks */}
-        <div style={{ background: '#1f2937', border: '1px solid #374151', borderRadius: '14px', padding: '14px 16px', marginBottom: '16px' }}>
+        <div style={{ background: '#111111', border: '0.5px solid #374151', borderRadius: '14px', padding: '14px 16px', marginBottom: '16px' }}>
           <div style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>All ranks</div>
           {CHALLENGES.map((c, i) => {
             const r = RANK_COLORS[c.difficulty]
             const isCurrent = c.difficulty === challenge.difficulty
             return (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #374151', opacity: isCurrent ? 1 : 0.45 }}>
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '0.5px solid #374151', opacity: isCurrent ? 1 : 0.45 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ width: '28px', height: '28px', borderRadius: '6px', background: r.border, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, color: '#fff', flexShrink: 0 }}>{c.difficulty}</span>
                   <div>
@@ -436,7 +436,7 @@ export default function DailyChallengeScreen({ onBack }: Props) {
           })}
         </div>
 
-        <button onClick={startChallenge} style={{ width: '100%', padding: '16px', borderRadius: '14px', background: rankInfo.border, border: 'none', color: '#fff', fontSize: '16px', fontWeight: 700, cursor: 'pointer' }}>
+        <button onClick={startChallenge} style={{ width: '100%', padding: '14px', borderRadius: '14px', background: rankInfo.border, border: 'none', color: '#fff', fontSize: '15px', fontWeight: 800, cursor: 'pointer' }}>
           Begin Quest ⚔️
         </button>
       </div>
