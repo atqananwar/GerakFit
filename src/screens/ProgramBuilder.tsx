@@ -4,7 +4,6 @@ import { useAuth } from '../contexts/AuthContext'
 
 interface Props {
   onBack: () => void
-  onStartWorkout: () => void
 }
 
 interface Exercise {
@@ -152,7 +151,7 @@ function getDefaultSets(ex: Exercise) {
   return isCompound(ex) ? DEFAULT_SETS.compound : DEFAULT_SETS.isolation
 }
 
-export default function ProgramBuilder({ onBack, onStartWorkout }: Props) {
+export default function ProgramBuilder({ onBack }: Props) {
   const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') !== 'false')
   useEffect(() => { document.body.style.background = darkMode ? '#111827' : '#f9fafb' }, [darkMode])
   const { user } = useAuth()
@@ -604,29 +603,6 @@ export default function ProgramBuilder({ onBack, onStartWorkout }: Props) {
       </div>
 
       <div style={{ padding: '20px 16px', maxWidth: '560px', margin: '0 auto' }}>
-
-        <div
-          onClick={onStartWorkout}
-          style={{
-            background: '#1c1c1e',
-            border: '0.5px solid #2a2a2a',
-            color: '#ffffff',
-            fontSize: '15px',
-            fontWeight: 600,
-            padding: '14px 16px',
-            borderRadius: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            width: '100%',
-            marginBottom: '16px',
-            cursor: 'pointer',
-            boxSizing: 'border-box',
-          }}
-        >
-          <span style={{ fontSize: '20px' }}>+</span>
-          Start Empty Workout
-        </div>
 
         {activeProgram ? (
           <>
