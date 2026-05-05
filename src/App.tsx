@@ -52,13 +52,12 @@ function AppContent() {
   if (appState === 'programs') return (
     <WorkoutHomeScreen
       onStartWorkout={() => setAppState('workout')}
-      onNewRoutine={() => setAppState('program_builder')}
       onExploreRoutines={() => setAppState('explore_routines')}
       onHome={() => setAppState('dashboard')}
       onOpenProfile={() => setAppState('profile')}
     />
   )
-  if (appState === 'program_builder') return <ProgramBuilder onBack={() => setAppState('programs')} />
+  if (appState === 'program_builder') return <ProgramBuilder onBack={() => setAppState('programs')} onStartWorkout={() => setAppState('workout')} />
   if (appState === 'explore_routines') return <ExploreRoutinesScreen onBack={() => setAppState('programs')} onStartWorkout={() => setAppState('workout')} />
   if (appState === 'ai_summary') return <AISummaryScreen onBack={() => setAppState('dashboard')} />
   if (appState === 'daily_challenge') return <DailyChallengeScreen onBack={() => setAppState('dashboard')} />

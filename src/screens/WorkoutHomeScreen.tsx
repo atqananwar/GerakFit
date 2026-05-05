@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 
 interface Props {
   onStartWorkout: () => void
-  onNewRoutine: () => void
   onExploreRoutines: () => void
   onHome: () => void
   onOpenProfile: () => void
@@ -14,7 +13,7 @@ const NAV_ITEMS = [
   { id: 'profile', label: 'Profile' },
 ]
 
-export default function WorkoutHomeScreen({ onStartWorkout, onNewRoutine, onExploreRoutines, onHome, onOpenProfile }: Props) {
+export default function WorkoutHomeScreen({ onStartWorkout, onExploreRoutines, onHome, onOpenProfile }: Props) {
   const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') !== 'false')
 
   useEffect(() => {
