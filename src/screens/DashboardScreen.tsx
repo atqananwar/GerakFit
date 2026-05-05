@@ -72,7 +72,7 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
   const today = new Date()
 
   useEffect(() => {
-    document.body.style.background = darkMode ? '#000000' : '#f9fafb'
+    document.body.style.background = darkMode ? '#0d0d0d' : '#f9fafb'
     localStorage.setItem('gerakfit-dark', String(darkMode))
   }, [darkMode])
 
@@ -133,13 +133,13 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
   }
 
   const D = darkMode
-  const bg = D ? '#000000' : '#f9fafb'
-  const card = D ? '#111111' : '#fff'
-  const border = D ? '#1a1a1a' : '#e5e7eb'
+  const bg = D ? '#0d0d0d' : '#f9fafb'
+  const card = D ? '#1c1c1e' : '#fff'
+  const border = D ? '#2a2a2a' : '#e5e7eb'
   const textPrimary = D ? '#f9fafb' : '#111827'
-  const textSecondary = D ? '#555555' : '#6b7280'
-  const textTertiary = D ? '#444444' : '#9ca3af'
-  const surfaceBg = D ? '#1a1a1a' : '#f3f4f6'
+  const textSecondary = D ? '#888888' : '#6b7280'
+  const textTertiary = D ? '#666666' : '#9ca3af'
+  const surfaceBg = D ? '#2a2a2a' : '#f3f4f6'
 
   const firstName = profile?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'there'
   const weekProgress = Math.min(weeklyStats.sessionsThisWeek / weeklyStats.targetDays, 1)
@@ -188,7 +188,7 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
 
         {/* Greeting */}
         <div style={{ marginBottom: '20px' }}>
-          <div style={{ fontSize: '11px', color: '#444444', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>{getGreeting()}</div>
+          <div style={{ fontSize: '11px', color: '#666666', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>{getGreeting()}</div>
           <div style={{ fontSize: '28px', fontWeight: 800, color: textPrimary, letterSpacing: '-0.5px' }}>{firstName}</div>
           <div style={{ fontSize: '13px', color: textSecondary, marginTop: '2px' }}>
             {today.toLocaleDateString('en-MY', { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -239,7 +239,7 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
           <button onClick={onOpenAISummary} style={{ flex: 1, padding: '11px 8px', borderRadius: '12px', background: card, border: `0.5px solid ${border}`, color: textPrimary, fontSize: '12px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
             <span>✦</span> AI weekly summary
           </button>
-          <button onClick={onOpenDailyChallenge} style={{ flex: 1, padding: '11px 8px', borderRadius: '12px', background: '#000000', border: '0.5px solid #1a1a1a', color: '#f9fafb', fontSize: '12px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+          <button onClick={onOpenDailyChallenge} style={{ flex: 1, padding: '11px 8px', borderRadius: '12px', background: '#0d0d0d', border: '0.5px solid #2a2a2a', color: '#f9fafb', fontSize: '12px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
             <span>⚔️</span> Daily Challenge
           </button>
         </div>

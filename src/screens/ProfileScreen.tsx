@@ -43,7 +43,7 @@ type Section = 'main' | 'edit_profile' | 'edit_equipment' | 'body_log'
 
 export default function ProfileScreen({ onBack }: Props) {
   const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') !== 'false')
-  useEffect(() => { document.body.style.background = darkMode ? '#000000' : '#f9fafb' }, [darkMode])
+  useEffect(() => { document.body.style.background = darkMode ? '#0d0d0d' : '#f9fafb' }, [darkMode])
   const { user } = useAuth()
   const [section, setSection] = useState<Section>('main')
   const [profile, setProfile] = useState<Profile>({ full_name:'', goal:'', experience_level:'', training_days_per_week:3, session_length_minutes:60, injury_notes:'', avatar_url:'' })
@@ -125,21 +125,21 @@ export default function ProfileScreen({ onBack }: Props) {
   const latestWeight = bodyLogs[0]?.weight_kg??null
   const initials = (profile.full_name||user?.email||'U').charAt(0).toUpperCase()
 
-  const P: React.CSSProperties = { minHeight:'100vh', background:darkMode?'#000000':'#f9fafb', fontFamily:'system-ui,sans-serif', paddingBottom:'32px' }
-  const H: React.CSSProperties = { background:darkMode?'#111111':'#fff', borderBottom:darkMode?'0.5px solid #1a1a1a':'0.5px solid #e5e7eb', padding:'14px 16px', display:'flex', alignItems:'center', gap:'12px' }
+  const P: React.CSSProperties = { minHeight:'100vh', background:darkMode?'#0d0d0d':'#f9fafb', fontFamily:'system-ui,sans-serif', paddingBottom:'32px' }
+  const H: React.CSSProperties = { background:darkMode?'#1c1c1e':'#fff', borderBottom:darkMode?'0.5px solid #2a2a2a':'0.5px solid #e5e7eb', padding:'14px 16px', display:'flex', alignItems:'center', gap:'12px' }
   const B: React.CSSProperties = { padding:'20px 16px', maxWidth:'500px', margin:'0 auto' }
-  const CARD: React.CSSProperties = { background:darkMode?'#111111':'#fff', border:darkMode?'0.5px solid #1a1a1a':'0.5px solid #e5e7eb', borderRadius:'14px', padding:'16px 18px', marginBottom:'14px' }
-  const CT: React.CSSProperties = { fontSize:'14px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px', color:'#555555', margin:0 }
+  const CARD: React.CSSProperties = { background:darkMode?'#1c1c1e':'#fff', border:darkMode?'0.5px solid #2a2a2a':'0.5px solid #e5e7eb', borderRadius:'14px', padding:'16px 18px', marginBottom:'14px' }
+  const CT: React.CSSProperties = { fontSize:'14px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.5px', color:'#888888', margin:0 }
   const FG: React.CSSProperties = { marginBottom:'18px' }
-  const LBL: React.CSSProperties = { display:'block', fontSize:'13px', fontWeight:500, color:darkMode?'#d1d5db':'#1a1a1a', marginBottom:'8px' }
-  const INP: React.CSSProperties = { width:'100%', padding:'10px 12px', borderRadius:'8px', border:`0.5px solid ${darkMode?'#1a1a1a':'#e5e7eb'}`, fontSize:'14px', color:darkMode?'#f9fafb':'#000000', background:darkMode?'#000000':'#fff', boxSizing:'border-box', fontFamily:'system-ui,sans-serif' }
+  const LBL: React.CSSProperties = { display:'block', fontSize:'13px', fontWeight:500, color:darkMode?'#d1d5db':'#2a2a2a', marginBottom:'8px' }
+  const INP: React.CSSProperties = { width:'100%', padding:'10px 12px', borderRadius:'8px', border:`0.5px solid ${darkMode?'#2a2a2a':'#e5e7eb'}`, fontSize:'14px', color:darkMode?'#f9fafb':'#000000', background:darkMode?'#141414':'#fff', boxSizing:'border-box', fontFamily:'system-ui,sans-serif' }
   const OPT: React.CSSProperties = { padding:'11px 14px', borderRadius:'10px', border:'1.5px solid #e5e7eb', cursor:'pointer' }
   const SBTN: React.CSSProperties = { width:'100%', padding:'12px', borderRadius:'10px', background:'#1D9E75', border:'none', color:'#fff', fontSize:'14px', fontWeight:600, cursor:'pointer', marginTop:'8px' }
   const EBTN: React.CSSProperties = { fontSize:'12px', color:'#1D9E75', background:'transparent', border:'none', cursor:'pointer', fontWeight:500 }
-  const BTN: React.CSSProperties = { background:'none', border:'none', fontSize:'14px', color:'#444', cursor:'pointer', padding:'0' }
+  const BTN: React.CSSProperties = { background:'none', border:'none', fontSize:'14px', color:'#666', cursor:'pointer', padding:'0' }
   const SM: React.CSSProperties = { fontSize:'12px', color:'#1D9E75', fontWeight:500 }
 
-  if (loading) return <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'system-ui,sans-serif' }}><div style={{ fontSize:'13px', color:darkMode?'#444444':'#555555' }}>Loading...</div></div>
+  if (loading) return <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'system-ui,sans-serif' }}><div style={{ fontSize:'13px', color:darkMode?'#666666':'#888888' }}>Loading...</div></div>
 
   if (section === 'edit_profile') return (
     <div style={P}>
@@ -150,7 +150,7 @@ export default function ProfileScreen({ onBack }: Props) {
         <div style={FG}><label style={LBL}>Experience</label><div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>{EXPERIENCE_OPTIONS.map(e=><div key={e.id} onClick={()=>setProfile(p=>({...p,experience_level:e.id}))} style={{ ...OPT, borderColor:profile.experience_level===e.id?'#1D9E75':'#e5e7eb', background:profile.experience_level===e.id?'#E1F5EE':'#fff' }}><div style={{ display:'flex', alignItems:'center', gap:'10px' }}><div style={{ width:'16px',height:'16px',borderRadius:'50%',border:`2px solid ${profile.experience_level===e.id?'#1D9E75':'#d1d5db'}`,background:profile.experience_level===e.id?'#1D9E75':'transparent',flexShrink:0 }}/><span style={{ fontSize:'14px', color:profile.experience_level===e.id?'#085041':'#000000' }}>{e.label}</span></div></div>)}</div></div>
         <div style={FG}><label style={LBL}>Days per week — <strong>{profile.training_days_per_week}</strong></label><input type="range" min="2" max="6" step="1" value={profile.training_days_per_week} onChange={e=>setProfile(p=>({...p,training_days_per_week:Number(e.target.value)}))} style={{ width:'100%', accentColor:'#1D9E75' }} /></div>
         <div style={FG}><label style={LBL}>Session length — <strong>{profile.session_length_minutes} min</strong></label><input type="range" min="30" max="120" step="15" value={profile.session_length_minutes} onChange={e=>setProfile(p=>({...p,session_length_minutes:Number(e.target.value)}))} style={{ width:'100%', accentColor:'#1D9E75' }} /></div>
-        <div style={FG}><label style={LBL}>Injury notes <span style={{ fontWeight:400, color:darkMode?'#444444':'#555555' }}>(optional)</span></label><textarea value={profile.injury_notes} onChange={e=>setProfile(p=>({...p,injury_notes:e.target.value}))} rows={3} style={{ ...INP, resize:'none' }} placeholder="e.g. Left knee pain" /></div>
+        <div style={FG}><label style={LBL}>Injury notes <span style={{ fontWeight:400, color:darkMode?'#666666':'#888888' }}>(optional)</span></label><textarea value={profile.injury_notes} onChange={e=>setProfile(p=>({...p,injury_notes:e.target.value}))} rows={3} style={{ ...INP, resize:'none' }} placeholder="e.g. Left knee pain" /></div>
         <button onClick={saveProfile} disabled={saving} style={SBTN}>{saving?'Saving...':'Save changes'}</button>
       </div>
     </div>
@@ -160,13 +160,13 @@ export default function ProfileScreen({ onBack }: Props) {
     <div style={P}>
       <div style={H}><button onClick={()=>setSection('main')} style={BTN}>← Back</button><div style={{ fontSize:'18px', fontWeight:800, color:darkMode?'#f9fafb':'#111827', flex:1 }}>Equipment ({totalSel} selected)</div>{saveMsg&&<div style={SM}>{saveMsg}</div>}</div>
       <div style={B}>
-        <div style={{ fontSize:'13px', color:darkMode?'#555555':'#444444', marginBottom:'16px' }}>Tap category to expand. Select equipment available at your gym.</div>
+        <div style={{ fontSize:'13px', color:darkMode?'#888888':'#666666', marginBottom:'16px' }}>Tap category to expand. Select equipment available at your gym.</div>
         {equipCats.map((cat, ci) => {
           const expanded = expandedCats.has(cat.category)
           const selCount = cat.items.filter(i=>i.selected).length
           const allSel = cat.items.every(i=>i.selected)
           return (
-            <div key={cat.category} style={{ background:darkMode?'#111111':'#fff', border:darkMode?'0.5px solid #1a1a1a':'0.5px solid #e5e7eb', borderRadius:'12px', marginBottom:'8px', overflow:'hidden' }}>
+            <div key={cat.category} style={{ background:darkMode?'#1c1c1e':'#fff', border:darkMode?'0.5px solid #2a2a2a':'0.5px solid #e5e7eb', borderRadius:'12px', marginBottom:'8px', overflow:'hidden' }}>
               <div onClick={()=>toggleCat(cat.category)} style={{ padding:'12px 14px', display:'flex', justifyContent:'space-between', alignItems:'center', cursor:'pointer' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
                   <div style={{ fontSize:'14px', fontWeight:500, color:darkMode?'#f9fafb':'#111827' }}>{cat.category}</div>
@@ -174,7 +174,7 @@ export default function ProfileScreen({ onBack }: Props) {
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
                   <button onClick={e=>{e.stopPropagation();toggleAll(ci)}} style={{ fontSize:'11px', color:allSel?'#ef4444':'#1D9E75', background:'transparent', border:'none', cursor:'pointer', fontWeight:500 }}>{allSel?'Clear':'All'}</button>
-                  <span style={{ color:darkMode?'#444444':'#555555', fontSize:'12px' }}>{expanded?'▲':'▼'}</span>
+                  <span style={{ color:darkMode?'#666666':'#888888', fontSize:'12px' }}>{expanded?'▲':'▼'}</span>
                 </div>
               </div>
               {expanded&&<div style={{ borderTop:'0.5px solid #f3f4f6', padding:'8px 14px 12px' }}>
@@ -182,7 +182,7 @@ export default function ProfileScreen({ onBack }: Props) {
                   {cat.items.map((item, ii) => (
                     <div key={item.name} onClick={()=>toggleItem(ci,ii)} style={{ padding:'8px 10px', borderRadius:'8px', cursor:'pointer', border:`1.5px solid ${item.selected?'#1D9E75':'#e5e7eb'}`, background:item.selected?'#E1F5EE':'#f9fafb', display:'flex', alignItems:'center', gap:'7px' }}>
                       <div style={{ width:'14px',height:'14px',borderRadius:'3px',border:`2px solid ${item.selected?'#1D9E75':'#d1d5db'}`,background:item.selected?'#1D9E75':'transparent',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center' }}>{item.selected&&<span style={{ color:'#fff',fontSize:'9px' }}>✓</span>}</div>
-                      <span style={{ fontSize:'12px', color:item.selected?'#085041':'#1a1a1a', lineHeight:1.3 }}>{item.name}</span>
+                      <span style={{ fontSize:'12px', color:item.selected?'#085041':'#2a2a2a', lineHeight:1.3 }}>{item.name}</span>
                     </div>
                   ))}
                 </div>
@@ -209,19 +209,19 @@ export default function ProfileScreen({ onBack }: Props) {
         </div>
         <div style={CARD}>
           <div style={CT}>History</div>
-          {bodyLogs.length===0?<div style={{ textAlign:'center', padding:'20px 0', fontSize:'13px', color:darkMode?'#444444':'#555555' }}>No entries yet.</div>:bodyLogs.map((log,i)=>{
+          {bodyLogs.length===0?<div style={{ textAlign:'center', padding:'20px 0', fontSize:'13px', color:darkMode?'#666666':'#888888' }}>No entries yet.</div>:bodyLogs.map((log,i)=>{
             const prev = bodyLogs[i+1]
             const diff = prev ? parseFloat((log.weight_kg - prev.weight_kg).toFixed(1)) : null
             return (
-              <div key={log.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 0', borderBottom:darkMode?'0.5px solid #1a1a1a':'0.5px solid #f3f4f6' }}>
+              <div key={log.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 0', borderBottom:darkMode?'0.5px solid #2a2a2a':'0.5px solid #f3f4f6' }}>
                 <div>
                   <div style={{ display:'flex', alignItems:'baseline', gap:'8px' }}>
                     <span style={{ fontSize:'16px', fontWeight:600, color:darkMode?'#f9fafb':'#111827' }}>{log.weight_kg} kg</span>
-                    {diff!==null&&<span style={{ fontSize:'12px', color:diff<0?'#1D9E75':diff>0?'#ef4444':'#555555', fontWeight:500 }}>{diff>0?'+':''}{diff} kg</span>}
+                    {diff!==null&&<span style={{ fontSize:'12px', color:diff<0?'#1D9E75':diff>0?'#ef4444':'#888888', fontWeight:500 }}>{diff>0?'+':''}{diff} kg</span>}
                   </div>
-                  <div style={{ fontSize:'11px', color:darkMode?'#444444':'#555555', marginTop:'1px' }}>{new Date(log.log_date).toLocaleDateString('en-MY',{day:'numeric',month:'short',year:'numeric'})}{log.notes?` · ${log.notes}`:''}</div>
+                  <div style={{ fontSize:'11px', color:darkMode?'#666666':'#888888', marginTop:'1px' }}>{new Date(log.log_date).toLocaleDateString('en-MY',{day:'numeric',month:'short',year:'numeric'})}{log.notes?` · ${log.notes}`:''}</div>
                 </div>
-                <button onClick={()=>{supabase.from('body_logs').delete().eq('id',log.id);setBodyLogs(p=>p.filter(l=>l.id!==log.id))}} style={{ padding:'4px 10px', borderRadius:'6px', border:'0.5px solid #fee2e2', background:darkMode?'#111111':'#fff', color:'#ef4444', fontSize:'12px', cursor:'pointer' }}>Delete</button>
+                <button onClick={()=>{supabase.from('body_logs').delete().eq('id',log.id);setBodyLogs(p=>p.filter(l=>l.id!==log.id))}} style={{ padding:'4px 10px', borderRadius:'6px', border:'0.5px solid #fee2e2', background:darkMode?'#1c1c1e':'#fff', color:'#ef4444', fontSize:'12px', cursor:'pointer' }}>Delete</button>
               </div>
             )
           })}
@@ -245,24 +245,24 @@ export default function ProfileScreen({ onBack }: Props) {
             <input ref={fileRef} type="file" accept="image/*" style={{ display:'none' }} onChange={e=>{ if(e.target.files?.[0]) uploadAvatar(e.target.files[0]) }} />
           </div>
           <div style={{ fontSize:'18px', fontWeight:700, color:darkMode?'#f9fafb':'#111827', marginTop:'10px' }}>{profile.full_name||user?.email}</div>
-          <div style={{ fontSize:'12px', color:'#444444', marginTop:'2px' }}>{user?.email}</div>
+          <div style={{ fontSize:'12px', color:'#666666', marginTop:'2px' }}>{user?.email}</div>
         </div>
 
-        {latestWeight&&<div style={{ background:darkMode?'#111111':'#E1F5EE', border:darkMode?'0.5px solid #1a1a1a':'none', borderRadius:'12px', padding:'12px 16px', marginBottom:'16px', display:'flex', justifyContent:'space-between', alignItems:'center' }}><div><div style={{ fontSize:'10px', color:'#444', fontWeight:500, textTransform:'uppercase', letterSpacing:'0.5px' }}>Current weight</div><div style={{ fontSize:'28px', fontWeight:800, color:'#1D9E75', marginTop:'2px' }}>{latestWeight} kg</div></div><button onClick={()=>setSection('body_log')} style={{ fontSize:'12px', color:'#1D9E75', background:'transparent', border:'none', cursor:'pointer', fontWeight:500 }}>Update →</button></div>}
+        {latestWeight&&<div style={{ background:darkMode?'#1c1c1e':'#E1F5EE', border:darkMode?'0.5px solid #2a2a2a':'none', borderRadius:'12px', padding:'12px 16px', marginBottom:'16px', display:'flex', justifyContent:'space-between', alignItems:'center' }}><div><div style={{ fontSize:'10px', color:'#666', fontWeight:500, textTransform:'uppercase', letterSpacing:'0.5px' }}>Current weight</div><div style={{ fontSize:'28px', fontWeight:800, color:'#1D9E75', marginTop:'2px' }}>{latestWeight} kg</div></div><button onClick={()=>setSection('body_log')} style={{ fontSize:'12px', color:'#1D9E75', background:'transparent', border:'none', cursor:'pointer', fontWeight:500 }}>Update →</button></div>}
 
         <div style={CARD}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'14px' }}><div style={CT}>Training profile</div><button onClick={()=>setSection('edit_profile')} style={EBTN}>Edit</button></div>
           {[['Goal',goalLabel],['Experience',expLabel],['Training days',`${profile.training_days_per_week} days/week`],['Session length',`${profile.session_length_minutes} min`],['Injuries',profile.injury_notes||'None noted']].map(([l,v])=>(
-            <div key={l} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderBottom:darkMode?'0.5px solid #1a1a1a':'0.5px solid #f3f4f6' }}><span style={{ fontSize:'13px', color:'#444444' }}>{l}</span><span style={{ fontSize:'13px', fontWeight:500, color:darkMode?'#ffffff':'#111827', textAlign:'right', maxWidth:'55%' }}>{v}</span></div>
+            <div key={l} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderBottom:darkMode?'0.5px solid #2a2a2a':'0.5px solid #f3f4f6' }}><span style={{ fontSize:'13px', color:'#666666' }}>{l}</span><span style={{ fontSize:'13px', fontWeight:500, color:darkMode?'#ffffff':'#111827', textAlign:'right', maxWidth:'55%' }}>{v}</span></div>
           ))}
         </div>
 
         <div style={CARD}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px' }}><div style={CT}>Equipment <span style={{ fontWeight:400, color:darkMode?'#444444':'#555555' }}>({totalSel} items)</span></div><button onClick={()=>setSection('edit_equipment')} style={EBTN}>Edit</button></div>
-          {totalSel===0?<span style={{ fontSize:'13px', color:darkMode?'#444444':'#555555' }}>None selected</span>:equipCats.filter(c=>c.items.some(i=>i.selected)).map(c=>(
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px' }}><div style={CT}>Equipment <span style={{ fontWeight:400, color:darkMode?'#666666':'#888888' }}>({totalSel} items)</span></div><button onClick={()=>setSection('edit_equipment')} style={EBTN}>Edit</button></div>
+          {totalSel===0?<span style={{ fontSize:'13px', color:darkMode?'#666666':'#888888' }}>None selected</span>:equipCats.filter(c=>c.items.some(i=>i.selected)).map(c=>(
             <div key={c.category} style={{ marginBottom:'8px' }}>
-              <div style={{ fontSize:'11px', fontWeight:500, color:darkMode?'#444444':'#555555', textTransform:'uppercase', letterSpacing:'0.4px', marginBottom:'5px' }}>{c.category}</div>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:'5px' }}>{c.items.filter(i=>i.selected).map(i=><span key={i.name} style={{ padding:'2px 9px', borderRadius:'20px', fontSize:'11px', background:darkMode?'#1a1a1a':'#E1F5EE', color:darkMode?'#1D9E75':'#085041' }}>{i.name}</span>)}</div>
+              <div style={{ fontSize:'11px', fontWeight:500, color:darkMode?'#666666':'#888888', textTransform:'uppercase', letterSpacing:'0.4px', marginBottom:'5px' }}>{c.category}</div>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:'5px' }}>{c.items.filter(i=>i.selected).map(i=><span key={i.name} style={{ padding:'2px 9px', borderRadius:'20px', fontSize:'11px', background:darkMode?'#2a2a2a':'#E1F5EE', color:darkMode?'#1D9E75':'#085041' }}>{i.name}</span>)}</div>
             </div>
           ))}
         </div>
@@ -270,11 +270,11 @@ export default function ProfileScreen({ onBack }: Props) {
         <div style={CARD}>
           <div style={CT}>Quick actions</div>
           {[['Log body weight',()=>setSection('body_log')],['Update equipment',()=>setSection('edit_equipment')]].map(([l,a])=>(
-            <div key={l as string} onClick={a as ()=>void} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderBottom:darkMode?'0.5px solid #1a1a1a':'0.5px solid #f3f4f6', cursor:'pointer' }}><span style={{ fontSize:'14px', color:darkMode?'#f9fafb':'#111827' }}>{l as string}</span><span style={{ color:darkMode?'#444444':'#555555', fontSize:'16px' }}>›</span></div>
+            <div key={l as string} onClick={a as ()=>void} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderBottom:darkMode?'0.5px solid #2a2a2a':'0.5px solid #f3f4f6', cursor:'pointer' }}><span style={{ fontSize:'14px', color:darkMode?'#f9fafb':'#111827' }}>{l as string}</span><span style={{ color:darkMode?'#666666':'#888888', fontSize:'16px' }}>›</span></div>
           ))}
         </div>
 
-        <button onClick={()=>signOut()} style={{ width:'100%', padding:'12px', borderRadius:'10px', border:'0.5px solid #2a1a1a', background:darkMode?'#000000':'#fff', color:'#ef4444', fontSize:'14px', fontWeight:500, cursor:'pointer', marginTop:'4px' }}>Sign out</button>
+        <button onClick={()=>signOut()} style={{ width:'100%', padding:'12px', borderRadius:'10px', border:'0.5px solid #2a1a1a', background:darkMode?'#1c1c1e':'#fff', color:'#ef4444', fontSize:'14px', fontWeight:500, cursor:'pointer', marginTop:'4px' }}>Sign out</button>
       </div>
     </div>
   )
