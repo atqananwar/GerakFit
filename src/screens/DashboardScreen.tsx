@@ -239,7 +239,7 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
           <button onClick={onOpenAISummary} style={{ flex: 1, padding: '11px 8px', borderRadius: '12px', background: card, border: `0.5px solid ${border}`, color: textPrimary, fontSize: '12px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
             <span>✦</span> AI weekly summary
           </button>
-          <button onClick={onOpenDailyChallenge} style={{ flex: 1, padding: '11px 8px', borderRadius: '12px', background: '#0d0d0d', border: '0.5px solid #2a2a2a', color: '#f9fafb', fontSize: '12px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+          <button onClick={onOpenDailyChallenge} style={{ flex: 1, padding: '11px 8px', borderRadius: '12px', background: '#0f2027', border: '0.5px solid #1D9E75', color: '#1D9E75', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
             <span>⚔️</span> Daily Challenge
           </button>
         </div>
@@ -326,7 +326,7 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
               if (item.id === 'profile') onOpenProfile()
               else if (item.id === 'programs') onOpenPrograms()
               else if (item.id === 'progress') onOpenAnalytics()
-              else if (item.id === 'workout') onStartWorkout()
+              else if (item.id === 'workout') onOpenPrograms()
               else setActiveNav(item.id)
             }}
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', borderTop: activeNav === item.id ? '2px solid #1D9E75' : '2px solid transparent', borderLeft: 'none', borderRight: 'none', borderBottom: 'none', background: 'transparent', cursor: 'pointer', padding: '10px 20px 4px', color: activeNav === item.id ? '#1D9E75' : textTertiary, fontSize: '12px', fontWeight: activeNav === item.id ? 600 : 400 }}

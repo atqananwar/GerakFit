@@ -47,7 +47,7 @@ function AppContent() {
   if (appState === 'exercises') return <ExerciseLibrary onBack={() => setAppState('dashboard')} />
   if (appState === 'analytics') return <AnalyticsScreen onBack={() => setAppState('dashboard')} />
   if (appState === 'profile') return <ProfileScreen onBack={() => setAppState('dashboard')} />
-  if (appState === 'programs') return <ProgramBuilder onBack={() => setAppState('dashboard')} />
+  if (appState === 'programs') return <ProgramBuilder onBack={() => setAppState('dashboard')} onStartWorkout={() => setAppState('workout')} />
   if (appState === 'ai_summary') return <AISummaryScreen onBack={() => setAppState('dashboard')} />
   if (appState === 'daily_challenge') return <DailyChallengeScreen onBack={() => setAppState('dashboard')} />
   return (

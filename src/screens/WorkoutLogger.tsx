@@ -64,7 +64,7 @@ export default function WorkoutLogger({ onBack }: Props) {
   const [saving, setSaving] = useState(false)
   const [newPRs, setNewPRs] = useState<PRResult[]>([])
   const [showPRCelebration, setShowPRCelebration] = useState(false)
-  const [, setLastPerformances] = useState<Record<string, LastPerformance | null>>({})
+  const [lastPerformances, setLastPerformances] = useState<Record<string, LastPerformance | null>>({})
   const [suggestions, setSuggestions] = useState<Record<string, OverloadSuggestion>>({})
   const [expandedEx, setExpandedEx] = useState<string | null>(null)
   const restRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -515,44 +515,54 @@ export default function WorkoutLogger({ onBack }: Props) {
             {expandedEx === se.localId && (
               <div style={{ padding: '0 16px 14px' }}>
                 {/* Set header row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr 1fr 1fr 36px', gap: '6px', marginBottom: '6px' }}>
-                  {['Set', 'kg', 'Reps', 'RPE', ''].map(h => (
+                <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr 1fr 36px', gap: '6px', marginBottom: '6px' }}>
+                  {['Set', 'kg', 'Reps', ''].map(h => (
                     <div key={h} style={{ fontSize: '10px', fontWeight: 500, color: darkMode ? '#333' : '#9ca3af', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{h}</div>
                   ))}
                 </div>
 
-                {se.sets.map(set => (
-                  <div key={set.id} style={{ display: 'grid', gridTemplateColumns: '28px 1fr 1fr 1fr 36px', gap: '6px', marginBottom: '6px', alignItems: 'center', opacity: set.completed ? 0.6 : 1 }}>
-                    <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: 500, color: set.completed ? '#1D9E75' : (darkMode ? '#666' : '#374151') }}>
-                      {set.completed ? '✓' : set.set_number}
+                {se.sets.map(set => {
+                  const prev = lastPerformances[se.exercise.id]
+                  const hint = !set.completed && prev?.weight_kg != null && prev?.reps != null
+                    ? `prev: ${prev.weight_kg} × ${prev.reps}`
+                    : null
+                  return (
+                    <div key={set.id} style={{ marginBottom: '6px' }}>
+                      {hint !== null && (
+                        <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr 1fr 36px', gap: '6px' }}>
+                          <div />
+                          <div style={{ gridColumn: 'span 2', fontSize: '11px', color: '#666666', textAlign: 'center', marginBottom: '3px' }}>{hint}</div>
+                          <div />
+                        </div>
+                      )}
+                      <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr 1fr 36px', gap: '6px', alignItems: 'center', opacity: set.completed ? 0.6 : 1 }}>
+                        <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: 500, color: set.completed ? '#1D9E75' : (darkMode ? '#666' : '#374151') }}>
+                          {set.completed ? '✓' : set.set_number}
+                        </div>
+                        <input
+                          type="number" placeholder="0" value={set.weight_kg ?? ''} disabled={set.completed}
+                          onChange={e => updateSet(se.localId, set.id, 'weight_kg', e.target.value ? Number(e.target.value) : null)}
+                          style={set.completed ? { ...setInputStyle, background: '#1D9E75', border: 'none', color: '#ffffff' } : setInputStyle}
+                        />
+                        <input
+                          type="number" placeholder="0" value={set.reps ?? ''} disabled={set.completed}
+                          onChange={e => updateSet(se.localId, set.id, 'reps', e.target.value ? Number(e.target.value) : null)}
+                          style={set.completed ? { ...setInputStyle, background: '#1D9E75', border: 'none', color: '#ffffff' } : setInputStyle}
+                        />
+                        <button
+                          onClick={() => set.completed ? removeSet(se.localId, set.id) : (saveSetLocally(se, set), completeSet(se.localId, set.id))}
+                          style={{
+                            width: '28px', height: '28px', borderRadius: '50%', border: set.completed ? 'none' : '0.5px solid #333', cursor: 'pointer', fontSize: '14px',
+                            background: set.completed ? '#fef2f2' : '#2a2a2a',
+                            color: set.completed ? '#ef4444' : '#1D9E75',
+                          }}
+                        >
+                          {set.completed ? '×' : '✓'}
+                        </button>
+                      </div>
                     </div>
-                    <input
-                      type="number" placeholder="0" value={set.weight_kg ?? ''} disabled={set.completed}
-                      onChange={e => updateSet(se.localId, set.id, 'weight_kg', e.target.value ? Number(e.target.value) : null)}
-                      style={set.completed ? { ...setInputStyle, background: '#1D9E75', border: 'none', color: '#ffffff' } : setInputStyle}
-                    />
-                    <input
-                      type="number" placeholder="0" value={set.reps ?? ''} disabled={set.completed}
-                      onChange={e => updateSet(se.localId, set.id, 'reps', e.target.value ? Number(e.target.value) : null)}
-                      style={set.completed ? { ...setInputStyle, background: '#1D9E75', border: 'none', color: '#ffffff' } : setInputStyle}
-                    />
-                    <input
-                      type="number" placeholder="—" min="1" max="10" value={set.rpe ?? ''} disabled={set.completed}
-                      onChange={e => updateSet(se.localId, set.id, 'rpe', e.target.value ? Number(e.target.value) : null)}
-                      style={setInputStyle}
-                    />
-                    <button
-                      onClick={() => set.completed ? removeSet(se.localId, set.id) : (saveSetLocally(se, set), completeSet(se.localId, set.id))}
-                      style={{
-                        width: '28px', height: '28px', borderRadius: '50%', border: set.completed ? 'none' : '0.5px solid #333', cursor: 'pointer', fontSize: '14px',
-                        background: set.completed ? '#fef2f2' : '#2a2a2a',
-                        color: set.completed ? '#ef4444' : '#1D9E75',
-                      }}
-                    >
-                      {set.completed ? '×' : '✓'}
-                    </button>
-                  </div>
-                ))}
+                  )
+                })}
 
                 <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
                   <button onClick={() => addSet(se.localId)} style={{ flex: 1, background: darkMode ? '#1c1c1e' : '#fff', border: darkMode ? '0.5px solid #2a2a2a' : '0.5px solid #e5e7eb', borderRadius: '8px', padding: '10px', textAlign: 'center', fontSize: '13px', color: '#1D9E75', fontWeight: 600, cursor: 'pointer' }}>
