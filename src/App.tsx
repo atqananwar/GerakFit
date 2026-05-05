@@ -9,11 +9,12 @@ import AnalyticsScreen from './screens/AnalyticsScreen'
 import ProfileScreen from './screens/ProfileScreen'
 import ProgramBuilder from './screens/ProgramBuilder'
 import WorkoutHomeScreen from './screens/WorkoutHomeScreen'
+import ExploreRoutinesScreen from './screens/ExploreRoutinesScreen'
 import AISummaryScreen from './screens/AISummaryScreen'
 import DailyChallengeScreen from './screens/DailyChallengeScreen'
 import { supabase } from './lib/supabase'
 
-type AppState = 'loading' | 'auth' | 'onboarding' | 'dashboard' | 'workout' | 'exercises' | 'analytics' | 'profile' | 'programs' | 'program_builder' | 'ai_summary' | 'daily_challenge'
+type AppState = 'loading' | 'auth' | 'onboarding' | 'dashboard' | 'workout' | 'exercises' | 'analytics' | 'profile' | 'programs' | 'program_builder' | 'explore_routines' | 'ai_summary' | 'daily_challenge'
 
 function AppContent() {
   const { user, loading: authLoading } = useAuth()
@@ -52,11 +53,13 @@ function AppContent() {
     <WorkoutHomeScreen
       onStartWorkout={() => setAppState('workout')}
       onNewRoutine={() => setAppState('program_builder')}
+      onExploreRoutines={() => setAppState('explore_routines')}
       onHome={() => setAppState('dashboard')}
       onOpenProfile={() => setAppState('profile')}
     />
   )
   if (appState === 'program_builder') return <ProgramBuilder onBack={() => setAppState('programs')} />
+  if (appState === 'explore_routines') return <ExploreRoutinesScreen onBack={() => setAppState('programs')} onStartWorkout={() => setAppState('workout')} />
   if (appState === 'ai_summary') return <AISummaryScreen onBack={() => setAppState('dashboard')} />
   if (appState === 'daily_challenge') return <DailyChallengeScreen onBack={() => setAppState('dashboard')} />
   return (

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 interface Props {
   onStartWorkout: () => void
   onNewRoutine: () => void
+  onExploreRoutines: () => void
   onHome: () => void
   onOpenProfile: () => void
 }
@@ -13,7 +14,7 @@ const NAV_ITEMS = [
   { id: 'profile', label: 'Profile' },
 ]
 
-export default function WorkoutHomeScreen({ onStartWorkout, onNewRoutine, onHome, onOpenProfile }: Props) {
+export default function WorkoutHomeScreen({ onStartWorkout, onNewRoutine, onExploreRoutines, onHome, onOpenProfile }: Props) {
   const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') !== 'false')
 
   useEffect(() => {
@@ -24,9 +25,8 @@ export default function WorkoutHomeScreen({ onStartWorkout, onNewRoutine, onHome
     <div style={{ minHeight: '100vh', background: darkMode ? '#0d0d0d' : '#f9fafb', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column', paddingBottom: '80px' }}>
 
       {/* Header */}
-      <div style={{ padding: '20px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ padding: '20px 20px 0' }}>
         <div style={{ fontSize: '24px', fontWeight: 700, color: '#ffffff' }}>Workout</div>
-        <div style={{ background: '#FFD60A', color: '#000000', fontSize: '12px', fontWeight: 700, borderRadius: '8px', padding: '3px 10px' }}>PRO</div>
       </div>
 
       {/* Body */}
@@ -58,7 +58,7 @@ export default function WorkoutHomeScreen({ onStartWorkout, onNewRoutine, onHome
         {/* Grid buttons */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
           <div
-            onClick={onNewRoutine}
+            onClick={onStartWorkout}
             style={{
               background: '#1c1c1e',
               border: '0.5px solid #2a2a2a',
@@ -75,7 +75,7 @@ export default function WorkoutHomeScreen({ onStartWorkout, onNewRoutine, onHome
             <span style={{ fontSize: '14px', fontWeight: 600, color: '#ffffff' }}>New Routine</span>
           </div>
           <div
-            onClick={() => console.log('explore')}
+            onClick={onExploreRoutines}
             style={{
               background: '#1c1c1e',
               border: '0.5px solid #2a2a2a',
@@ -93,26 +93,6 @@ export default function WorkoutHomeScreen({ onStartWorkout, onNewRoutine, onHome
           </div>
         </div>
 
-        {/* Spacer */}
-        <div style={{ flex: 1 }} />
-
-        {/* How to get started banner */}
-        <div
-          onClick={() => console.log('how to get started')}
-          style={{
-            background: '#1a2332',
-            border: '0.5px solid #2a3a4a',
-            borderRadius: '14px',
-            padding: '16px 20px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            cursor: 'pointer',
-          }}
-        >
-          <span style={{ fontSize: '15px', fontWeight: 500, color: '#ffffff' }}>How to get started</span>
-          <span style={{ fontSize: '20px', color: '#888888' }}>→</span>
-        </div>
       </div>
 
       {/* Bottom nav */}

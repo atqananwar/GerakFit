@@ -474,8 +474,8 @@ export default function WorkoutLogger({ onBack }: Props) {
         {/* Empty state */}
         {sessionExercises.length === 0 && (
           <div style={{ textAlign: 'center', paddingTop: '60px', paddingBottom: '20px' }}>
-            <div style={{ fontSize: '18px', fontWeight: 800, color: darkMode ? '#ffffff' : '#111827', marginBottom: '8px' }}>No exercises yet</div>
-            <div style={{ fontSize: '14px', color: '#666', marginBottom: '24px' }}>Tap below to add your first exercise</div>
+            <div style={{ fontSize: '18px', fontWeight: 800, color: darkMode ? '#ffffff' : '#111827', marginBottom: '8px' }}>Build your routine</div>
+            <div style={{ fontSize: '14px', color: '#666', marginBottom: '24px' }}>Add exercises to create your workout</div>
           </div>
         )}
 
