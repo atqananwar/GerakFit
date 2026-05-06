@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { PRESET_ROUTINES } from '../data/presetRoutines'
-import type { PresetRoutine } from '../data/presetRoutines'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -11,8 +10,6 @@ interface Props {
 
 type Level = 'All' | 'Beginner' | 'Intermediate' | 'Advanced'
 type Equipment = 'All' | 'Gym' | 'Dumbbells' | 'Bodyweight'
-type Routine = PresetRoutine
-
 const LEVEL_BADGE: Record<string, { bg: string; color: string; border: string }> = {
   Beginner:     { bg: '#0f2a1a', color: '#1D9E75', border: '0.5px solid #1D9E75' },
   Intermediate: { bg: '#2a1f00', color: '#FFD60A', border: '0.5px solid #FFD60A' },
@@ -28,7 +25,6 @@ export default function ExploreRoutinesScreen({ onBack, onRoutineSaved }: Props)
   const [equipFilter, setEquipFilter] = useState<Equipment>('All')
   const [expanded, setExpanded] = useState<number | null>(null)
   const [saving, setSaving] = useState<string | null>(null)
-  const [saved, setSaved] = useState<string | null>(null)
 
   useEffect(() => {
     document.body.style.background = darkMode ? '#0d0d0d' : '#f9fafb'
@@ -40,83 +36,56 @@ export default function ExploreRoutinesScreen({ onBack, onRoutineSaved }: Props)
     return levelOk && equipOk
   })
 
-  async function savePresetRoutine(routine: Routine) {
-    console.log('Saving routine:', routine.name)
-    console.log('[ExploreRoutines] savePresetRoutine called:', routine.name, 'user:', user?.id)
+  async function savePresetRoutine(routine: typeof PRESET_ROUTINES[0]) {
+    console.log('=== SAVE STARTED ===', routine?.name)
 
     if (!user) {
-      alert('Please log in first')
+      console.log('ERROR: No user')
+      alert('No user logged in')
       return
     }
 
-    try {
-      setSaving(routine.id.toString())
+    console.log('User ID:', user.id)
+    setSaving(routine.id.toString())
 
+    try {
+      // Step 1: Create template
+      console.log('Creating template...')
       const { data: template, error: templateError } = await supabase
         .from('workout_templates')
         .insert({
           user_id: user.id,
           name: routine.name,
-          split_type: routine.equipment.toLowerCase(),
+          split_type: 'custom',
         })
         .select()
         .single()
 
-      console.log('[ExploreRoutines] template created:', template, 'error:', templateError)
+      console.log('Template result:', template)
+      console.log('Template error:', templateError)
 
-      if (!template) {
-        console.log('[ExploreRoutines] template insert failed, aborting')
+      if (templateError) {
+        alert('Error creating template: ' + templateError.message)
         setSaving(null)
         return
       }
 
-      const allExerciseNames = routine.workouts.flatMap(w =>
-        w.exercises.map(e =>
-          e.split(' ')[0] === 'Warm' ? 'Warm Up' : e.replace(/\s+\d+x.+$/, '').trim()
-        )
-      )
-
-      const { data: dbExercises, error: exercisesError } = await supabase
-        .from('exercises')
-        .select('id, name')
-        .in('name', allExerciseNames)
-
-      console.log('[ExploreRoutines] exercises lookup error:', exercisesError, 'matched:', dbExercises?.length ?? 0, '/', allExerciseNames.length)
-
-      const exerciseMap = Object.fromEntries((dbExercises ?? []).map(e => [e.name, e.id]))
-
-      let order = 0
-      const rows = routine.workouts.flatMap(w =>
-        w.exercises.map(exStr => {
-          const name = exStr.replace(/\s+\d+x.+$/, '').trim()
-          const exerciseId = exerciseMap[name]
-          if (!exerciseId) return null
-          const setsMatch = exStr.match(/(\d+)x/)
-          const sets = setsMatch ? parseInt(setsMatch[1]) : 3
-          return {
-            template_id: template.id,
-            exercise_id: exerciseId,
-            exercise_order: order++,
-            sets_data: Array(sets).fill({ weight_kg: 0, reps: 0 }),
-          }
-        }).filter(Boolean)
-      )
-
-      if (rows.length > 0) {
-        const { error: rowsError } = await supabase.from('template_exercises').insert(rows)
-        console.log('[ExploreRoutines] template_exercises insert error:', rowsError)
+      if (!template) {
+        alert('No template returned')
+        setSaving(null)
+        return
       }
 
+      console.log('Template created! ID:', template.id)
+      alert('Routine saved successfully! ✓')
       setSaving(null)
-      setSaved(routine.id.toString())
-      setTimeout(() => {
-        setSaved(null)
-        setExpanded(null)
-        onRoutineSaved?.()
-        onBack()
-      }, 1000)
+
+      if (onRoutineSaved) onRoutineSaved()
+      setTimeout(() => onBack(), 500)
+
     } catch (err) {
-      console.log('[ExploreRoutines] savePresetRoutine error:', err)
+      console.log('CATCH ERROR:', err)
+      alert('Exception: ' + String(err))
       setSaving(null)
     }
   }
@@ -162,7 +131,6 @@ export default function ExploreRoutinesScreen({ onBack, onRoutineSaved }: Props)
           const isExpanded = expanded === routine.id
           const levelStyle = LEVEL_BADGE[routine.level] ?? EQUIP_BADGE
           const isSaving = saving === routine.id.toString()
-          const isSaved = saved === routine.id.toString()
 
           return (
             <div
@@ -198,23 +166,25 @@ export default function ExploreRoutinesScreen({ onBack, onRoutineSaved }: Props)
                     </div>
                   ))}
                   <button
-                    onClick={() => savePresetRoutine(routine)}
-                    disabled={isSaving || isSaved}
+                    onClick={() => {
+                      alert('Button tapped!')
+                      savePresetRoutine(routine)
+                    }}
                     style={{
                       width: '100%',
                       padding: '14px',
                       borderRadius: '12px',
-                      background: isSaved ? '#0f2a1a' : '#1D9E75',
+                      background: '#1D9E75',
                       border: 'none',
-                      color: isSaved ? '#1D9E75' : '#ffffff',
+                      color: '#ffffff',
                       fontSize: '15px',
                       fontWeight: 700,
-                      cursor: isSaving || isSaved ? 'default' : 'pointer',
+                      cursor: isSaving ? 'default' : 'pointer',
                       opacity: isSaving ? 0.7 : 1,
                       marginTop: '16px',
                     }}
                   >
-                    {isSaved ? '✓ Saved!' : isSaving ? 'Saving...' : 'Save Routine'}
+                    {isSaving ? 'Saving...' : 'Save Routine'}
                   </button>
                 </div>
               )}
