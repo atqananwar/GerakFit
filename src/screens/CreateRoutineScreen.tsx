@@ -89,7 +89,7 @@ export default function CreateRoutineScreen({ onBack, onRoutineSaved }: Props) {
 
     const { data: template } = await supabase
       .from('workout_templates')
-      .insert({ user_id: user.id, name: routineName.trim(), split_type: 'custom' })
+      .insert({ user_id: user.id, name: routineName.trim() })
       .select()
       .single()
 

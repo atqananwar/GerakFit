@@ -56,7 +56,6 @@ export default function ExploreRoutinesScreen({ onBack, onRoutineSaved }: Props)
         .insert({
           user_id: user.id,
           name: routine.name,
-          split_type: 'custom',
         })
         .select()
         .single()
