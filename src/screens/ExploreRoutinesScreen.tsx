@@ -1,12 +1,12 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { PRESET_ROUTINES } from '../data/presetRoutines'
 import type { PresetRoutine } from '../data/presetRoutines'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
 
 interface Props {
   onBack: () => void
-  onStartWorkout: () => void
 }
-
 
 type Level = 'All' | 'Beginner' | 'Intermediate' | 'Advanced'
 type Routine = PresetRoutine
@@ -17,11 +17,13 @@ const LEVEL_COLORS: Record<string, string> = {
   Advanced: '#e55a2b',
 }
 
-
-export default function ExploreRoutinesScreen({ onBack, onStartWorkout }: Props) {
+export default function ExploreRoutinesScreen({ onBack }: Props) {
+  const { user } = useAuth()
   const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') !== 'false')
   const [levelFilter, setLevelFilter] = useState<Level>('All')
   const [selected, setSelected] = useState<Routine | null>(null)
+  const [saving, setSaving] = useState<string | null>(null)
+  const [saved, setSaved] = useState<string | null>(null)
 
   useEffect(() => {
     document.body.style.background = darkMode ? '#0d0d0d' : '#f9fafb'
@@ -30,6 +32,65 @@ export default function ExploreRoutinesScreen({ onBack, onStartWorkout }: Props)
   const filtered = levelFilter === 'All'
     ? PRESET_ROUTINES
     : PRESET_ROUTINES.filter(r => r.level === levelFilter)
+
+  async function savePresetRoutine(routine: Routine) {
+    if (!user) return
+    setSaving(routine.id.toString())
+
+    const { data: template } = await supabase
+      .from('workout_templates')
+      .insert({
+        user_id: user.id,
+        name: routine.name,
+        split_type: routine.equipment.toLowerCase(),
+      })
+      .select()
+      .single()
+
+    if (!template) { setSaving(null); return }
+
+    const allExerciseNames = routine.workouts.flatMap(w =>
+      w.exercises.map(e =>
+        e.split(' ')[0] === 'Warm' ? 'Warm Up' : e.replace(/\s+\d+x.+$/, '').trim()
+      )
+    )
+
+    const { data: dbExercises } = await supabase
+      .from('exercises')
+      .select('id, name')
+      .in('name', allExerciseNames)
+
+    const exerciseMap = Object.fromEntries((dbExercises ?? []).map(e => [e.name, e.id]))
+
+    let order = 0
+    const rows = routine.workouts.flatMap(w =>
+      w.exercises.map(exStr => {
+        const name = exStr.replace(/\s+\d+x.+$/, '').trim()
+        const exerciseId = exerciseMap[name]
+        if (!exerciseId) return null
+        const setsMatch = exStr.match(/(\d+)x/)
+        const sets = setsMatch ? parseInt(setsMatch[1]) : 3
+        return {
+          template_id: template.id,
+          exercise_id: exerciseId,
+          exercise_order: order++,
+          sets_data: Array(sets).fill({ weight_kg: 0, reps: 0 }),
+        }
+      }).filter(Boolean)
+    )
+
+    if (rows.length > 0) {
+      await supabase.from('template_exercises').insert(rows)
+    }
+
+    setSaving(null)
+    setSaved(routine.id.toString())
+    setTimeout(() => {
+      setSaved(null)
+      setSelected(null)
+      onBack()
+    }, 800)
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#0d0d0d', fontFamily: 'system-ui, sans-serif', paddingBottom: '32px' }}>
@@ -71,13 +132,7 @@ export default function ExploreRoutinesScreen({ onBack, onStartWorkout }: Props)
           <div
             key={routine.id}
             onClick={() => setSelected(routine)}
-            style={{
-              background: '#1c1c1e',
-              border: '0.5px solid #2a2a2a',
-              borderRadius: '14px',
-              padding: '16px',
-              cursor: 'pointer',
-            }}
+            style={{ background: '#1c1c1e', border: '0.5px solid #2a2a2a', borderRadius: '14px', padding: '16px', cursor: 'pointer' }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
               <div style={{ fontSize: '15px', fontWeight: 600, color: '#ffffff', flex: 1, lineHeight: 1.3 }}>{routine.name}</div>
@@ -103,12 +158,10 @@ export default function ExploreRoutinesScreen({ onBack, onStartWorkout }: Props)
             style={{ position: 'relative', background: '#1c1c1e', borderRadius: '20px 20px 0 0', padding: '0 0 40px', maxHeight: '80vh', overflowY: 'auto' }}
             onClick={e => e.stopPropagation()}
           >
-            {/* Sheet handle */}
             <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
               <div style={{ width: '36px', height: '4px', borderRadius: '2px', background: '#3a3a3a' }} />
             </div>
 
-            {/* Sheet header */}
             <div style={{ padding: '12px 20px 16px', borderBottom: '0.5px solid #2a2a2a' }}>
               <div style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff', lineHeight: 1.3 }}>{selected.name}</div>
               <div style={{ fontSize: '13px', color: '#888', marginTop: '6px' }}>{selected.description}</div>
@@ -119,31 +172,42 @@ export default function ExploreRoutinesScreen({ onBack, onStartWorkout }: Props)
               </div>
             </div>
 
-            {/* Workouts */}
             <div style={{ padding: '8px 20px' }}>
               {selected.workouts.map((workout, wi) => (
                 <div key={wi}>
                   <div style={{ fontSize: '13px', fontWeight: 700, color: '#1D9E75', textTransform: 'uppercase' as const, marginTop: '12px', letterSpacing: '0.4px' }}>{workout.name}</div>
                   {workout.exercises.map((ex, ei) => (
-                    <div
-                      key={ei}
-                      style={{ fontSize: '13px', color: '#cccccc', padding: '6px 0', borderBottom: '0.5px solid #1a1a1a' }}
-                    >
-                      {ex}
-                    </div>
+                    <div key={ei} style={{ fontSize: '13px', color: '#cccccc', padding: '6px 0', borderBottom: '0.5px solid #1a1a1a' }}>{ex}</div>
                   ))}
                 </div>
               ))}
             </div>
 
-            {/* CTA */}
             <div style={{ padding: '20px 20px 0' }}>
-              <button
-                onClick={() => { setSelected(null); onStartWorkout() }}
-                style={{ width: '100%', padding: '16px', borderRadius: '12px', background: '#1D9E75', border: 'none', color: '#ffffff', fontSize: '15px', fontWeight: 700, cursor: 'pointer' }}
-              >
-                Start this Workout
-              </button>
+              {(() => {
+                const isSaving = saving === selected.id.toString()
+                const isSaved = saved === selected.id.toString()
+                return (
+                  <button
+                    onClick={() => !isSaving && !isSaved && savePresetRoutine(selected)}
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      borderRadius: '12px',
+                      background: isSaved ? '#085041' : '#1D9E75',
+                      border: 'none',
+                      color: '#ffffff',
+                      fontSize: '15px',
+                      fontWeight: 700,
+                      cursor: isSaving || isSaved ? 'default' : 'pointer',
+                      opacity: isSaving ? 0.7 : 1,
+                      marginTop: '16px',
+                    }}
+                  >
+                    {isSaved ? '✓ Saved' : isSaving ? 'Saving...' : 'Save Routine'}
+                  </button>
+                )
+              })()}
             </div>
           </div>
         </div>

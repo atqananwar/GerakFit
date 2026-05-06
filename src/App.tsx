@@ -10,11 +10,12 @@ import ProfileScreen from './screens/ProfileScreen'
 import ProgramBuilder from './screens/ProgramBuilder'
 import WorkoutHomeScreen from './screens/WorkoutHomeScreen'
 import ExploreRoutinesScreen from './screens/ExploreRoutinesScreen'
+import CreateRoutineScreen from './screens/CreateRoutineScreen'
 import AISummaryScreen from './screens/AISummaryScreen'
 import DailyChallengeScreen from './screens/DailyChallengeScreen'
 import { supabase } from './lib/supabase'
 
-type AppState = 'loading' | 'auth' | 'onboarding' | 'dashboard' | 'workout' | 'exercises' | 'analytics' | 'profile' | 'programs' | 'program_builder' | 'explore_routines' | 'ai_summary' | 'daily_challenge'
+type AppState = 'loading' | 'auth' | 'onboarding' | 'dashboard' | 'workout' | 'exercises' | 'analytics' | 'profile' | 'programs' | 'program_builder' | 'explore_routines' | 'create_routine' | 'ai_summary' | 'daily_challenge'
 
 function AppContent() {
   const { user, loading: authLoading } = useAuth()
@@ -52,13 +53,21 @@ function AppContent() {
   if (appState === 'programs') return (
     <WorkoutHomeScreen
       onStartWorkout={() => setAppState('workout')}
+      onStartRoutine={(_routineId) => setAppState('workout')}
+      onNewRoutine={() => setAppState('create_routine')}
       onExploreRoutines={() => setAppState('explore_routines')}
       onHome={() => setAppState('dashboard')}
       onOpenProfile={() => setAppState('profile')}
     />
   )
+  if (appState === 'create_routine') return (
+    <CreateRoutineScreen
+      onBack={() => setAppState('programs')}
+      onSaved={() => setAppState('programs')}
+    />
+  )
   if (appState === 'program_builder') return <ProgramBuilder onBack={() => setAppState('programs')} onStartWorkout={() => setAppState('workout')} />
-  if (appState === 'explore_routines') return <ExploreRoutinesScreen onBack={() => setAppState('programs')} onStartWorkout={() => setAppState('workout')} />
+  if (appState === 'explore_routines') return <ExploreRoutinesScreen onBack={() => setAppState('programs')} />
   if (appState === 'ai_summary') return <AISummaryScreen onBack={() => setAppState('dashboard')} />
   if (appState === 'daily_challenge') return <DailyChallengeScreen onBack={() => setAppState('dashboard')} />
   return (
