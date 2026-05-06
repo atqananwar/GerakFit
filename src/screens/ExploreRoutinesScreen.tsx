@@ -17,11 +17,6 @@ const LEVEL_COLORS: Record<string, string> = {
   Advanced: '#e55a2b',
 }
 
-const EQUIPMENT_COLORS: Record<string, string> = {
-  Bodyweight: '#9b59b6',
-  Dumbbells: '#e67e22',
-  Gym: '#2a2a2a',
-}
 
 export default function ExploreRoutinesScreen({ onBack, onStartWorkout }: Props) {
   const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') !== 'false')

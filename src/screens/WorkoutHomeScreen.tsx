@@ -23,6 +23,7 @@ export default function WorkoutHomeScreen({ onStartWorkout, onExploreRoutines, o
   return (
     <div style={{ minHeight: '100vh', background: darkMode ? '#0d0d0d' : '#f9fafb', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column', paddingBottom: '80px' }}>
 
+      {/* v2 */}
       {/* Header */}
       <div style={{ padding: '20px 20px 0' }}>
         <div style={{ fontSize: '24px', fontWeight: 700, color: '#ffffff' }}>Workout</div>
