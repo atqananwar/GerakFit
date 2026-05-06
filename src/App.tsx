@@ -20,6 +20,7 @@ type AppState = 'loading' | 'auth' | 'onboarding' | 'dashboard' | 'workout' | 'e
 function AppContent() {
   const { user, loading: authLoading } = useAuth()
   const [appState, setAppState] = useState<AppState>('loading')
+  const [routineRefreshKey, setRoutineRefreshKey] = useState(0)
   const syncStatus = 'idle' as const
 
   useEffect(() => {
@@ -58,16 +59,17 @@ function AppContent() {
       onExploreRoutines={() => setAppState('explore_routines')}
       onHome={() => setAppState('dashboard')}
       onOpenProfile={() => setAppState('profile')}
+      refreshKey={routineRefreshKey}
     />
   )
   if (appState === 'create_routine') return (
     <CreateRoutineScreen
       onBack={() => setAppState('programs')}
-      onSaved={() => setAppState('programs')}
+      onRoutineSaved={() => { setRoutineRefreshKey(k => k + 1); setAppState('programs') }}
     />
   )
   if (appState === 'program_builder') return <ProgramBuilder onBack={() => setAppState('programs')} onStartWorkout={() => setAppState('workout')} />
-  if (appState === 'explore_routines') return <ExploreRoutinesScreen onBack={() => setAppState('programs')} />
+  if (appState === 'explore_routines') return <ExploreRoutinesScreen onBack={() => setAppState('programs')} onRoutineSaved={() => { setRoutineRefreshKey(k => k + 1); setAppState('programs') }} />
   if (appState === 'ai_summary') return <AISummaryScreen onBack={() => setAppState('dashboard')} />
   if (appState === 'daily_challenge') return <DailyChallengeScreen onBack={() => setAppState('dashboard')} />
   return (

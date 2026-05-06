@@ -9,6 +9,7 @@ interface Props {
   onExploreRoutines: () => void
   onHome: () => void
   onOpenProfile: () => void
+  refreshKey?: number
 }
 
 interface SavedRoutine {
@@ -28,7 +29,7 @@ const NAV_ITEMS = [
   { id: 'profile', label: 'Profile' },
 ]
 
-export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNewRoutine, onExploreRoutines, onHome, onOpenProfile }: Props) {
+export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNewRoutine, onExploreRoutines, onHome, onOpenProfile, refreshKey }: Props) {
   const { user } = useAuth()
   const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') !== 'false')
   const [savedRoutines, setSavedRoutines] = useState<SavedRoutine[]>([])
@@ -48,7 +49,7 @@ export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNe
     if (data) setSavedRoutines(data as SavedRoutine[])
   }
 
-  useEffect(() => { loadSavedRoutines() }, [user])
+  useEffect(() => { loadSavedRoutines() }, [user, refreshKey])
 
   return (
     <div style={{ minHeight: '100vh', background: '#0d0d0d', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column', paddingBottom: '80px' }}>

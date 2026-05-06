@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext'
 
 interface Props {
   onBack: () => void
+  onRoutineSaved?: () => void
 }
 
 type Level = 'All' | 'Beginner' | 'Intermediate' | 'Advanced'
@@ -20,7 +21,7 @@ const LEVEL_BADGE: Record<string, { bg: string; color: string; border: string }>
 
 const EQUIP_BADGE = { bg: '#1a1a1a', color: '#888', border: '0.5px solid #2a2a2a' }
 
-export default function ExploreRoutinesScreen({ onBack }: Props) {
+export default function ExploreRoutinesScreen({ onBack, onRoutineSaved }: Props) {
   const { user } = useAuth()
   const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') !== 'false')
   const [levelFilter, setLevelFilter] = useState<Level>('All')
@@ -40,6 +41,7 @@ export default function ExploreRoutinesScreen({ onBack }: Props) {
   })
 
   async function savePresetRoutine(routine: Routine) {
+    console.log('Saving routine:', routine.name)
     console.log('[ExploreRoutines] savePresetRoutine called:', routine.name, 'user:', user?.id)
 
     if (!user) {
@@ -74,10 +76,12 @@ export default function ExploreRoutinesScreen({ onBack }: Props) {
         )
       )
 
-      const { data: dbExercises } = await supabase
+      const { data: dbExercises, error: exercisesError } = await supabase
         .from('exercises')
         .select('id, name')
         .in('name', allExerciseNames)
+
+      console.log('[ExploreRoutines] exercises lookup error:', exercisesError, 'matched:', dbExercises?.length ?? 0, '/', allExerciseNames.length)
 
       const exerciseMap = Object.fromEntries((dbExercises ?? []).map(e => [e.name, e.id]))
 
@@ -100,7 +104,7 @@ export default function ExploreRoutinesScreen({ onBack }: Props) {
 
       if (rows.length > 0) {
         const { error: rowsError } = await supabase.from('template_exercises').insert(rows)
-        if (rowsError) console.log('[ExploreRoutines] template_exercises insert error:', rowsError)
+        console.log('[ExploreRoutines] template_exercises insert error:', rowsError)
       }
 
       setSaving(null)
@@ -108,6 +112,7 @@ export default function ExploreRoutinesScreen({ onBack }: Props) {
       setTimeout(() => {
         setSaved(null)
         setExpanded(null)
+        onRoutineSaved?.()
         onBack()
       }, 1000)
     } catch (err) {

@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 
 interface Props {
   onBack: () => void
-  onSaved: () => void
+  onRoutineSaved: () => void
 }
 
 interface RoutineExercise {
@@ -20,7 +20,20 @@ interface DBExercise {
   primary_muscle: string
 }
 
-export default function CreateRoutineScreen({ onBack, onSaved }: Props) {
+const MUSCLE_FILTERS = ['All', 'Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Legs', 'Abs/Core', 'Cardio']
+
+const MUSCLE_GROUPS: Record<string, string[]> = {
+  Chest:     ['Upper Chest', 'Mid Chest', 'Lower Chest'],
+  Back:      ['Lats', 'Mid Back', 'Lower Back', 'Traps'],
+  Shoulders: ['Shoulders', 'Side Delt', 'Rear Delt'],
+  Biceps:    ['Biceps Long Head', 'Biceps Short Head', 'Brachialis'],
+  Triceps:   ['Triceps Long Head', 'Triceps Lateral Head'],
+  Legs:      ['Quads', 'Hamstrings', 'Glutes', 'Calves'],
+  'Abs/Core': ['Abs', 'Obliques'],
+  Cardio:    ['Cardio'],
+}
+
+export default function CreateRoutineScreen({ onBack, onRoutineSaved }: Props) {
   const { user } = useAuth()
   const [routineName, setRoutineName] = useState('')
   const [exercises, setExercises] = useState<RoutineExercise[]>([])
@@ -31,6 +44,7 @@ export default function CreateRoutineScreen({ onBack, onSaved }: Props) {
   const [allExercises, setAllExercises] = useState<DBExercise[]>([])
   const [pickerSearch, setPickerSearch] = useState('')
   const [pickerLoading, setPickerLoading] = useState(false)
+  const [muscleFilter, setMuscleFilter] = useState('All')
 
   useEffect(() => {
     document.body.style.background = '#0d0d0d'
@@ -56,6 +70,7 @@ export default function CreateRoutineScreen({ onBack, onSaved }: Props) {
     setExercises(prev => [...prev, { exerciseId: ex.id, name: ex.name, muscle: ex.primary_muscle, sets: 3 }])
     setShowExercisePicker(false)
     setPickerSearch('')
+    setMuscleFilter('All')
   }
 
   function updateSets(exerciseId: string, delta: number) {
@@ -91,13 +106,14 @@ export default function CreateRoutineScreen({ onBack, onSaved }: Props) {
     }
 
     setSaving(false)
-    onSaved()
-    onBack()
+    onRoutineSaved()
   }
 
-  const filteredExercises = allExercises.filter(ex =>
-    !pickerSearch || ex.name.toLowerCase().includes(pickerSearch.toLowerCase()) || ex.primary_muscle.toLowerCase().includes(pickerSearch.toLowerCase())
-  )
+  const filteredExercises = allExercises.filter(ex => {
+    const searchOk = !pickerSearch || ex.name.toLowerCase().includes(pickerSearch.toLowerCase()) || ex.primary_muscle.toLowerCase().includes(pickerSearch.toLowerCase())
+    const muscleOk = muscleFilter === 'All' || MUSCLE_GROUPS[muscleFilter]?.includes(ex.primary_muscle)
+    return searchOk && muscleOk
+  })
 
   // Exercise Picker overlay
   if (showExercisePicker) {
@@ -106,7 +122,7 @@ export default function CreateRoutineScreen({ onBack, onSaved }: Props) {
         {/* Picker header */}
         <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '0.5px solid #1c1c1e' }}>
           <button
-            onClick={() => { setShowExercisePicker(false); setPickerSearch('') }}
+            onClick={() => { setShowExercisePicker(false); setPickerSearch(''); setMuscleFilter('All') }}
             style={{ background: 'none', border: 'none', color: '#888888', fontSize: '15px', cursor: 'pointer', padding: 0 }}
           >
             Cancel
@@ -116,7 +132,7 @@ export default function CreateRoutineScreen({ onBack, onSaved }: Props) {
         </div>
 
         {/* Search */}
-        <div style={{ padding: '12px 16px' }}>
+        <div style={{ padding: '12px 16px 0' }}>
           <input
             type="text"
             placeholder="Search exercises..."
@@ -125,6 +141,31 @@ export default function CreateRoutineScreen({ onBack, onSaved }: Props) {
             autoFocus
             style={{ width: '100%', background: '#1c1c1e', border: '0.5px solid #2a2a2a', borderRadius: '10px', padding: '10px 14px', fontSize: '14px', color: '#ffffff', boxSizing: 'border-box', outline: 'none' }}
           />
+        </div>
+
+        {/* Muscle filter chips */}
+        <div style={{ display: 'flex', overflowX: 'auto', gap: '6px', padding: '10px 16px 10px', scrollbarWidth: 'none' }}>
+          {MUSCLE_FILTERS.map(f => (
+            <button
+              key={f}
+              onClick={() => setMuscleFilter(f)}
+              style={{
+                height: '32px',
+                padding: '0 14px',
+                borderRadius: '20px',
+                border: muscleFilter === f ? 'none' : '0.5px solid #2a2a2a',
+                background: muscleFilter === f ? '#1D9E75' : '#1a1a1a',
+                color: muscleFilter === f ? '#ffffff' : '#666666',
+                fontSize: '12px',
+                fontWeight: muscleFilter === f ? 600 : 400,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              {f}
+            </button>
+          ))}
         </div>
 
         {/* List */}
