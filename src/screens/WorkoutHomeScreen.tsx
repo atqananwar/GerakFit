@@ -35,6 +35,7 @@ export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNe
   const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') !== 'false')
   const [savedRoutines, setSavedRoutines] = useState<SavedRoutine[]>([])
   const [expandedRoutine, setExpandedRoutine] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 
   useEffect(() => {
     document.body.style.background = darkMode ? '#0d0d0d' : '#f9fafb'
@@ -52,6 +53,22 @@ export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNe
   }
 
   useEffect(() => { loadSavedRoutines() }, [user, refreshKey])
+
+  async function deleteRoutine(programId: string) {
+    const { error } = await supabase
+      .from('programs')
+      .delete()
+      .eq('id', programId)
+      .eq('user_id', user!.id)
+
+    if (!error) {
+      setSavedRoutines(prev => prev.filter(r => r.id !== programId))
+      setConfirmDelete(null)
+    } else {
+      console.log('Delete error:', error.message)
+      alert('Delete failed: ' + error.message)
+    }
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#0d0d0d', fontFamily: 'system-ui, sans-serif', display: 'flex', flexDirection: 'column', paddingBottom: '80px' }}>
@@ -123,12 +140,29 @@ export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNe
                 <span style={{ fontSize: '13px', color: '#888', lineHeight: 1, transition: 'transform 0.15s', display: 'inline-block', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>›</span>
                 <span style={{ fontSize: '14px', color: '#888', flex: 1 }}>{routine.name} <span style={{ color: '#555' }}>({dayCount})</span></span>
                 <button
-                  onClick={e => { e.stopPropagation(); console.log('[WorkoutHome] menu tapped for:', routine.id) }}
+                  onClick={e => { e.stopPropagation(); setConfirmDelete(confirmDelete === routine.id ? null : routine.id) }}
                   style={{ background: 'none', border: 'none', color: '#555', fontSize: '18px', cursor: 'pointer', padding: '0 4px', lineHeight: 1 }}
                 >
                   ···
                 </button>
               </div>
+
+              {confirmDelete === routine.id && (
+                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                  <button
+                    onClick={() => deleteRoutine(routine.id)}
+                    style={{ flex: 1, padding: '8px', background: '#2a0f0f', border: '0.5px solid #ef4444', borderRadius: '8px', color: '#ef4444', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Delete
+                  </button>
+                  <button
+                    onClick={() => setConfirmDelete(null)}
+                    style={{ flex: 1, padding: '8px', background: '#1c1c1e', border: '0.5px solid #2a2a2a', borderRadius: '8px', color: '#888', fontSize: '13px', cursor: 'pointer' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
 
               {/* Expanded: day card */}
               {isExpanded && (
