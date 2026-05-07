@@ -25,6 +25,7 @@ export default function ExploreRoutinesScreen({ onBack, onRoutineSaved }: Props)
   const [equipFilter, setEquipFilter] = useState<Equipment>('All')
   const [expanded, setExpanded] = useState<number | null>(null)
   const [saving, setSaving] = useState<string | null>(null)
+  const [debugMsg, setDebugMsg] = useState<string>('')
 
   useEffect(() => {
     document.body.style.background = darkMode ? '#0d0d0d' : '#f9fafb'
@@ -37,54 +38,57 @@ export default function ExploreRoutinesScreen({ onBack, onRoutineSaved }: Props)
   })
 
   async function savePresetRoutine(routine: typeof PRESET_ROUTINES[0]) {
-    console.log('=== SAVE STARTED ===', routine?.name)
+    if (!user) return
 
-    if (!user) {
-      console.log('ERROR: No user')
-      alert('No user logged in')
-      return
-    }
-
-    console.log('User ID:', user.id)
     setSaving(routine.id.toString())
+    setDebugMsg('')
 
     try {
-      // Step 1: Create template
-      console.log('Creating template...')
-      const { data: template, error: templateError } = await supabase
-        .from('workout_templates')
+      const { data: program, error: programError } = await supabase
+        .from('programs')
         .insert({
           user_id: user.id,
           name: routine.name,
+          split_type: routine.equipment?.toLowerCase() ?? 'custom',
+          goal: 'general_fitness',
+          is_active: true,
         })
         .select()
         .single()
 
-      console.log('Template result:', template)
-      console.log('Template error:', templateError)
+      if (programError) {
+        setDebugMsg('Error creating program: ' + programError.message)
+        setSaving(null)
+        return
+      }
+
+      const templateRows = routine.workouts.map((w, i) => ({
+        program_id: program.id,
+        name: w.name,
+        day_type: w.name,
+        sort_order: i,
+        estimated_minutes: 45,
+      }))
+
+      const { error: templateError } = await supabase
+        .from('workout_templates')
+        .insert(templateRows)
+        .select()
 
       if (templateError) {
-        alert('Error creating template: ' + templateError.message)
+        setDebugMsg('Error creating templates: ' + templateError.message)
         setSaving(null)
         return
       }
 
-      if (!template) {
-        alert('No template returned')
-        setSaving(null)
-        return
-      }
-
-      console.log('Template created! ID:', template.id)
-      alert('Routine saved successfully! ✓')
-      setSaving(null)
-
-      if (onRoutineSaved) onRoutineSaved()
-      setTimeout(() => onBack(), 500)
+      setDebugMsg('✓ Saved!')
+      setTimeout(() => {
+        if (onRoutineSaved) onRoutineSaved()
+        onBack()
+      }, 800)
 
     } catch (err) {
-      console.log('CATCH ERROR:', err)
-      alert('Exception: ' + String(err))
+      setDebugMsg('Exception: ' + String(err))
       setSaving(null)
     }
   }
@@ -164,11 +168,11 @@ export default function ExploreRoutinesScreen({ onBack, onRoutineSaved }: Props)
                       ))}
                     </div>
                   ))}
+                  {debugMsg ? (
+                    <div style={{ fontSize: '13px', color: debugMsg.startsWith('✓') ? '#1D9E75' : '#ef4444', textAlign: 'center', marginTop: '12px' }}>{debugMsg}</div>
+                  ) : null}
                   <button
-                    onClick={() => {
-                      alert('Button tapped!')
-                      savePresetRoutine(routine)
-                    }}
+                    onClick={() => savePresetRoutine(routine)}
                     style={{
                       width: '100%',
                       padding: '14px',

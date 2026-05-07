@@ -15,11 +15,12 @@ interface Props {
 interface SavedRoutine {
   id: string
   name: string
-  created_at: string
-  template_exercises: {
+  split_type: string
+  workout_templates: {
     id: string
-    exercise_order: number
-    exercises: { name: string; primary_muscle: string }[]
+    name: string
+    day_type: string
+    sort_order: number
   }[]
 }
 
@@ -42,9 +43,10 @@ export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNe
   async function loadSavedRoutines() {
     if (!user) return
     const { data } = await supabase
-      .from('workout_templates')
-      .select('id, name, created_at, template_exercises(id, exercise_order, exercises(name, primary_muscle))')
+      .from('programs')
+      .select('id, name, split_type, workout_templates(id, name, day_type, sort_order)')
       .eq('user_id', user.id)
+      .eq('is_active', true)
       .order('created_at', { ascending: false })
     if (data) setSavedRoutines(data as SavedRoutine[])
   }
@@ -101,18 +103,16 @@ export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNe
 
         {/* Saved routines */}
         {savedRoutines.map(routine => {
-          const exercises = routine.template_exercises
+          const days = (routine.workout_templates ?? [])
             .slice()
-            .sort((a, b) => a.exercise_order - b.exercise_order)
-            .map(te => te.exercises[0])
-            .filter(Boolean) as { name: string; primary_muscle: string }[]
+            .sort((a, b) => a.sort_order - b.sort_order)
 
           const isExpanded = expandedRoutine === routine.id
-          const exCount = exercises.length
+          const dayCount = days.length
 
-          const firstThree = exercises.slice(0, 3).map(e => e.name)
-          const dayTitle = firstThree.join(', ') + (exCount > 3 ? '...' : '')
-          const allNames = exercises.map(e => e.name).join(', ')
+          const firstThree = days.slice(0, 3).map(d => d.name)
+          const dayTitle = firstThree.join(', ') + (dayCount > 3 ? '...' : '')
+          const allNames = days.map(d => d.name).join(', ')
 
           return (
             <div key={routine.id}>
@@ -121,7 +121,7 @@ export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNe
                 onClick={() => setExpandedRoutine(isExpanded ? null : routine.id)}
               >
                 <span style={{ fontSize: '13px', color: '#888', lineHeight: 1, transition: 'transform 0.15s', display: 'inline-block', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>›</span>
-                <span style={{ fontSize: '14px', color: '#888', flex: 1 }}>{routine.name} <span style={{ color: '#555' }}>({exCount})</span></span>
+                <span style={{ fontSize: '14px', color: '#888', flex: 1 }}>{routine.name} <span style={{ color: '#555' }}>({dayCount})</span></span>
                 <button
                   onClick={e => { e.stopPropagation(); console.log('[WorkoutHome] menu tapped for:', routine.id) }}
                   style={{ background: 'none', border: 'none', color: '#555', fontSize: '18px', cursor: 'pointer', padding: '0 4px', lineHeight: 1 }}

@@ -39,6 +39,7 @@ export default function CreateRoutineScreen({ onBack, onRoutineSaved }: Props) {
   const [exercises, setExercises] = useState<RoutineExercise[]>([])
   const [showExercisePicker, setShowExercisePicker] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [debugMsg, setDebugMsg] = useState<string>('')
 
   // Picker state
   const [allExercises, setAllExercises] = useState<DBExercise[]>([])
@@ -86,27 +87,47 @@ export default function CreateRoutineScreen({ onBack, onRoutineSaved }: Props) {
   async function saveRoutine() {
     if (!user || !routineName.trim()) return
     setSaving(true)
+    setDebugMsg('')
 
-    const { data: template } = await supabase
-      .from('workout_templates')
-      .insert({ user_id: user.id, name: routineName.trim() })
+    const { data: program, error: programError } = await supabase
+      .from('programs')
+      .insert({
+        user_id: user.id,
+        name: routineName.trim(),
+        split_type: 'custom',
+        goal: 'general_fitness',
+        is_active: true,
+      })
       .select()
       .single()
 
-    if (!template) { setSaving(false); return }
-
-    if (exercises.length > 0) {
-      const rows = exercises.map((ex, i) => ({
-        template_id: template.id,
-        exercise_id: ex.exerciseId,
-        exercise_order: i,
-        sets_data: Array(ex.sets).fill({ weight_kg: 0, reps: 0 }),
-      }))
-      await supabase.from('template_exercises').insert(rows)
+    if (programError) {
+      setDebugMsg('Error creating program: ' + programError.message)
+      setSaving(false)
+      return
     }
 
-    setSaving(false)
-    onRoutineSaved()
+    const { error: templateError } = await supabase
+      .from('workout_templates')
+      .insert({
+        program_id: program.id,
+        name: routineName.trim(),
+        day_type: routineName.trim(),
+        sort_order: 0,
+        estimated_minutes: 45,
+      })
+
+    if (templateError) {
+      setDebugMsg('Error creating template: ' + templateError.message)
+      setSaving(false)
+      return
+    }
+
+    setDebugMsg('✓ Saved!')
+    setTimeout(() => {
+      if (onRoutineSaved) onRoutineSaved()
+      onBack()
+    }, 800)
   }
 
   const filteredExercises = allExercises.filter(ex => {
@@ -222,6 +243,11 @@ export default function CreateRoutineScreen({ onBack, onRoutineSaved }: Props) {
 
       {/* Body */}
       <div style={{ padding: '20px' }}>
+
+        {/* Debug message */}
+        {debugMsg ? (
+          <div style={{ fontSize: '13px', color: debugMsg.startsWith('✓') ? '#1D9E75' : '#ef4444', textAlign: 'center', marginBottom: '12px' }}>{debugMsg}</div>
+        ) : null}
 
         {/* Routine name */}
         <input
