@@ -35,6 +35,7 @@ interface SessionExercise {
 
 interface Props {
   onBack: () => void
+  templateId?: string
 }
 
 function genId() {
@@ -45,7 +46,7 @@ function newSet(num: number): SetLog {
   return { id: genId(), set_number: num, weight_kg: null, reps: null, rpe: null, is_warmup: false, is_failure: false, completed: false }
 }
 
-export default function WorkoutLogger({ onBack }: Props) {
+export default function WorkoutLogger({ onBack, templateId }: Props) {
   const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') !== 'false')
   useEffect(() => { document.body.style.background = darkMode ? '#0d0d0d' : '#f9fafb' }, [darkMode])
   const { user } = useAuth()
@@ -107,9 +108,73 @@ export default function WorkoutLogger({ onBack }: Props) {
     setFilteredExercises(filtered)
   }, [exercises, muscleFilter, subMuscleFilter, searchQuery])
 
+  useEffect(() => {
+    if (templateId && user) loadTemplateExercises(templateId)
+  }, [templateId, user])
+
   async function loadExercises() {
     const { data } = await supabase.from('exercises').select('id, name, primary_muscle, secondary_muscles, equipment, difficulty').eq('is_active', true).order('name')
     if (data) setExercises(data)
+  }
+
+  async function loadTemplateExercises(tid: string) {
+    const { data: template } = await supabase
+      .from('workout_templates')
+      .select(`
+        id, name,
+        template_exercises (
+          id, exercise_order, sets,
+          exercises (
+            id, name, primary_muscle, secondary_muscles,
+            equipment, movement_pattern, difficulty,
+            instructions, common_mistakes
+          )
+        )
+      `)
+      .eq('id', tid)
+      .single()
+
+    if (!template?.template_exercises?.length) return
+
+    const sorted = [...template.template_exercises]
+      .sort((a: any, b: any) => (a.exercise_order ?? 0) - (b.exercise_order ?? 0))
+
+    const preloaded: SessionExercise[] = sorted
+      .filter((te: any) => te.exercises)
+      .map((te: any) => {
+        const ex = te.exercises as Exercise
+        const numSets = te.sets ?? 3
+        return {
+          localId: genId(),
+          exercise: ex,
+          sets: Array.from({ length: numSets }, (_, i) => newSet(i + 1)),
+          notes: '',
+          pain_flag: false,
+        }
+      })
+
+    setSessionExercises(preloaded)
+    setPhase('session')
+
+    if (user) {
+      for (const se of preloaded) {
+        const last = await getLastPerformance(user.id, se.exercise.id)
+        setLastPerformances(prev => ({ ...prev, [se.exercise.id]: last }))
+        if (last) {
+          const suggestion = suggestOverload(last)
+          setSuggestions(prev => ({ ...prev, [se.exercise.id]: suggestion }))
+          setSessionExercises(prev => prev.map(s =>
+            s.exercise.id === se.exercise.id
+              ? { ...s, sets: s.sets.map((set, i) =>
+                  i === 0
+                    ? { ...set, weight_kg: suggestion.suggested_weight, reps: suggestion.suggested_reps }
+                    : set
+                )}
+              : s
+          ))
+        }
+      }
+    }
   }
 
   function formatElapsed(s: number) {

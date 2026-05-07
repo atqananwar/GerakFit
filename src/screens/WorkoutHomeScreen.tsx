@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 
 interface Props {
   onStartWorkout: () => void
-  onStartRoutine: (routineId: string) => void
+  onStartRoutine: (templateId: string) => void
   onNewRoutine: () => void
   onExploreRoutines: () => void
   onHome: () => void
@@ -141,7 +141,7 @@ export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNe
                     {allNames}
                   </div>
                   <button
-                    onClick={() => onStartRoutine(routine.id)}
+                    onClick={() => days[0] && onStartRoutine(days[0].id)}
                     style={{ width: '100%', background: '#1D9E75', border: 'none', color: '#ffffff', fontSize: '14px', fontWeight: 700, padding: '12px', borderRadius: '10px', marginTop: '12px', cursor: 'pointer' }}
                   >
                     Start Routine

@@ -21,6 +21,7 @@ function AppContent() {
   const { user, loading: authLoading } = useAuth()
   const [appState, setAppState] = useState<AppState>('loading')
   const [routineRefreshKey, setRoutineRefreshKey] = useState(0)
+  const [activeTemplateId, setActiveTemplateId] = useState<string | undefined>()
   const syncStatus = 'idle' as const
 
   useEffect(() => {
@@ -47,14 +48,14 @@ function AppContent() {
 
   if (appState === 'auth') return <AuthScreen onSuccess={() => checkOnboarding()} />
   if (appState === 'onboarding') return <OnboardingScreen onComplete={() => setAppState('dashboard')} />
-  if (appState === 'workout') return <WorkoutLogger onBack={() => setAppState('dashboard')} />
+  if (appState === 'workout') return <WorkoutLogger onBack={() => setAppState('dashboard')} templateId={activeTemplateId} />
   if (appState === 'exercises') return <ExerciseLibrary onBack={() => setAppState('dashboard')} />
   if (appState === 'analytics') return <AnalyticsScreen onBack={() => setAppState('dashboard')} />
   if (appState === 'profile') return <ProfileScreen onBack={() => setAppState('dashboard')} />
   if (appState === 'programs') return (
     <WorkoutHomeScreen
-      onStartWorkout={() => setAppState('workout')}
-      onStartRoutine={(_routineId) => setAppState('workout')}
+      onStartWorkout={() => { setActiveTemplateId(undefined); setAppState('workout') }}
+      onStartRoutine={(templateId) => { setActiveTemplateId(templateId); setAppState('workout') }}
       onNewRoutine={() => setAppState('create_routine')}
       onExploreRoutines={() => setAppState('explore_routines')}
       onHome={() => setAppState('dashboard')}
