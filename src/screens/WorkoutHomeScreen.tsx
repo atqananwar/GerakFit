@@ -127,14 +127,11 @@ export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNe
           const isExpanded = expandedRoutine === routine.id
           const dayCount = days.length
 
-          const firstThree = days.slice(0, 3).map(d => d.name)
-          const dayTitle = firstThree.join(', ') + (dayCount > 3 ? '...' : '')
-          const allNames = days.map(d => d.name).join(', ')
-
           return (
             <div key={routine.id}>
-              {/* Group header */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 0', cursor: 'pointer' }}
+              {/* Program header */}
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 0', cursor: 'pointer' }}
                 onClick={() => setExpandedRoutine(isExpanded ? null : routine.id)}
               >
                 <span style={{ fontSize: '13px', color: '#888', lineHeight: 1, transition: 'transform 0.15s', display: 'inline-block', transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)' }}>›</span>
@@ -148,7 +145,7 @@ export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNe
               </div>
 
               {confirmDelete === routine.id && (
-                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                   <button
                     onClick={() => deleteRoutine(routine.id)}
                     style={{ flex: 1, padding: '8px', background: '#2a0f0f', border: '0.5px solid #ef4444', borderRadius: '8px', color: '#ef4444', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
@@ -164,24 +161,20 @@ export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNe
                 </div>
               )}
 
-              {/* Expanded: day card */}
-              {isExpanded && (
-                <div style={{ background: '#1c1c1e', border: '0.5px solid #2a2a2a', borderRadius: '12px', padding: '14px 16px', marginBottom: '8px' }}>
-                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>{dayTitle}</div>
-                  <div style={{
-                    fontSize: '12px', color: '#888', marginTop: '4px',
-                    display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                  }}>
-                    {allNames}
+              {/* Expanded: one card per workout_template day */}
+              {isExpanded && days.map((day: any) => (
+                <div key={day.id} style={{ background: '#1c1c1e', border: '0.5px solid #2a2a2a', borderRadius: '12px', padding: '14px 16px', marginBottom: '8px' }}>
+                  <div style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff', marginBottom: '4px' }}>
+                    {day.name}
                   </div>
                   <button
-                    onClick={() => days[0] && onStartRoutine(days[0].id)}
-                    style={{ width: '100%', background: '#1D9E75', border: 'none', color: '#ffffff', fontSize: '14px', fontWeight: 700, padding: '12px', borderRadius: '10px', marginTop: '12px', cursor: 'pointer' }}
+                    onClick={() => onStartRoutine(day.id)}
+                    style={{ width: '100%', padding: '12px', marginTop: '10px', background: '#1D9E75', border: 'none', borderRadius: '10px', color: '#ffffff', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}
                   >
                     Start Routine
                   </button>
                 </div>
-              )}
+              ))}
             </div>
           )
         })}
