@@ -70,7 +70,7 @@ export default function ExploreRoutinesScreen({ onBack, onRoutineSaved }: Props)
         estimated_minutes: 45,
       }))
 
-      const { error: templateError } = await supabase
+      const { data: templates, error: templateError } = await supabase
         .from('workout_templates')
         .insert(templateRows)
         .select()
@@ -79,6 +79,55 @@ export default function ExploreRoutinesScreen({ onBack, onRoutineSaved }: Props)
         setDebugMsg('Error creating templates: ' + templateError.message)
         setSaving(null)
         return
+      }
+
+      console.log('Templates created:', JSON.stringify(templates, null, 2))
+
+      // Step 3: Insert template_exercises
+      // Strip trailing "3x10", "4x8-12", "1 set" etc. to get clean exercise names
+      const allExerciseNames = [...new Set(
+        routine.workouts.flatMap(w =>
+          w.exercises.map(e => e.replace(/\s+\d+x[\d-]+$|\s+\d+\s+set.*$/i, '').trim())
+        )
+      )]
+
+      console.log('Looking up exercises:', allExerciseNames)
+
+      const { data: dbExercises } = await supabase
+        .from('exercises')
+        .select('id, name')
+        .in('name', allExerciseNames)
+
+      console.log('Found in DB:', JSON.stringify(dbExercises, null, 2))
+
+      if (templates && dbExercises) {
+        for (const tmpl of templates) {
+          const workout = routine.workouts.find(w => w.name === tmpl.name)
+          if (!workout) continue
+
+          const exerciseRows = workout.exercises
+            .map((exStr, i) => {
+              const cleanName = exStr.replace(/\s+\d+x[\d-]+$|\s+\d+\s+set.*$/i, '').trim()
+              const dbEx = dbExercises.find(e => e.name === cleanName)
+              if (!dbEx) return null
+              const setsMatch = exStr.match(/(\d+)x/)
+              const targetSets = setsMatch ? parseInt(setsMatch[1]) : 3
+              return {
+                template_id: tmpl.id,
+                exercise_id: dbEx.id,
+                sort_order: i,
+                target_sets: targetSets,
+              }
+            })
+            .filter((r): r is NonNullable<typeof r> => r !== null)
+
+          console.log('Inserting rows for template:', tmpl.id, exerciseRows)
+
+          const { data: inserted, error: insertError } = await supabase
+            .from('template_exercises')
+            .insert(exerciseRows)
+          console.log('Insert result:', inserted, 'Error:', insertError)
+        }
       }
 
       setDebugMsg('✓ Saved!')
