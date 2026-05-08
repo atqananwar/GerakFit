@@ -19,10 +19,22 @@ type AppState = 'loading' | 'auth' | 'onboarding' | 'dashboard' | 'workout' | 'e
 
 function AppContent() {
   const { user, loading: authLoading } = useAuth()
-  const [appState, setAppState] = useState<AppState>('loading')
+  const [appState, setAppState] = useState<AppState>(() => {
+    const saved = sessionStorage.getItem('gerakfit-appstate')
+    return (saved as AppState) || 'loading'
+  })
   const [routineRefreshKey, setRoutineRefreshKey] = useState(0)
   const [activeTemplateId, setActiveTemplateId] = useState<string | undefined>()
   const syncStatus = 'idle' as const
+
+  function navigateTo(state: AppState) {
+    sessionStorage.setItem('gerakfit-appstate', state)
+    setAppState(state)
+  }
+
+  useEffect(() => {
+    if (appState === 'auth') sessionStorage.removeItem('gerakfit-appstate')
+  }, [appState])
 
   useEffect(() => {
     if (authLoading) return
@@ -33,8 +45,8 @@ function AppContent() {
   async function checkOnboarding() {
     if (!user) return
     const { data } = await supabase.from('profiles').select('goal, experience_level').eq('id', user.id).single()
-    if (data?.goal && data?.experience_level) setAppState('dashboard')
-    else setAppState('onboarding')
+    if (data?.goal && data?.experience_level) navigateTo('dashboard')
+    else navigateTo('onboarding')
   }
 
   if (appState === 'loading') return (
@@ -47,41 +59,41 @@ function AppContent() {
   )
 
   if (appState === 'auth') return <AuthScreen onSuccess={() => checkOnboarding()} />
-  if (appState === 'onboarding') return <OnboardingScreen onComplete={() => setAppState('dashboard')} />
-  if (appState === 'workout') return <WorkoutLogger onBack={() => setAppState('dashboard')} templateId={activeTemplateId} />
-  if (appState === 'exercises') return <ExerciseLibrary onBack={() => setAppState('dashboard')} />
-  if (appState === 'analytics') return <AnalyticsScreen onBack={() => setAppState('dashboard')} />
-  if (appState === 'profile') return <ProfileScreen onBack={() => setAppState('dashboard')} />
+  if (appState === 'onboarding') return <OnboardingScreen onComplete={() => navigateTo('dashboard')} />
+  if (appState === 'workout') return <WorkoutLogger onBack={() => navigateTo('dashboard')} templateId={activeTemplateId} />
+  if (appState === 'exercises') return <ExerciseLibrary onBack={() => navigateTo('dashboard')} />
+  if (appState === 'analytics') return <AnalyticsScreen onBack={() => navigateTo('dashboard')} />
+  if (appState === 'profile') return <ProfileScreen onBack={() => navigateTo('dashboard')} />
   if (appState === 'programs') return (
     <WorkoutHomeScreen
-      onStartWorkout={() => { setActiveTemplateId(undefined); setAppState('workout') }}
-      onStartRoutine={(templateId) => { setActiveTemplateId(templateId); setAppState('workout') }}
-      onNewRoutine={() => setAppState('create_routine')}
-      onExploreRoutines={() => setAppState('explore_routines')}
-      onHome={() => setAppState('dashboard')}
-      onOpenProfile={() => setAppState('profile')}
+      onStartWorkout={() => { setActiveTemplateId(undefined); navigateTo('workout') }}
+      onStartRoutine={(templateId) => { setActiveTemplateId(templateId); navigateTo('workout') }}
+      onNewRoutine={() => navigateTo('create_routine')}
+      onExploreRoutines={() => navigateTo('explore_routines')}
+      onHome={() => navigateTo('dashboard')}
+      onOpenProfile={() => navigateTo('profile')}
       refreshKey={routineRefreshKey}
     />
   )
   if (appState === 'create_routine') return (
     <CreateRoutineScreen
-      onBack={() => setAppState('programs')}
-      onRoutineSaved={() => { setRoutineRefreshKey(k => k + 1); setAppState('programs') }}
+      onBack={() => navigateTo('programs')}
+      onRoutineSaved={() => { setRoutineRefreshKey(k => k + 1); navigateTo('programs') }}
     />
   )
-  if (appState === 'program_builder') return <ProgramBuilder onBack={() => setAppState('programs')} onStartWorkout={() => setAppState('workout')} />
-  if (appState === 'explore_routines') return <ExploreRoutinesScreen onBack={() => setAppState('programs')} onRoutineSaved={() => { setRoutineRefreshKey(k => k + 1); setAppState('programs') }} />
-  if (appState === 'ai_summary') return <AISummaryScreen onBack={() => setAppState('dashboard')} />
-  if (appState === 'daily_challenge') return <DailyChallengeScreen onBack={() => setAppState('dashboard')} />
+  if (appState === 'program_builder') return <ProgramBuilder onBack={() => navigateTo('programs')} onStartWorkout={() => navigateTo('workout')} />
+  if (appState === 'explore_routines') return <ExploreRoutinesScreen onBack={() => navigateTo('programs')} onRoutineSaved={() => { setRoutineRefreshKey(k => k + 1); navigateTo('programs') }} />
+  if (appState === 'ai_summary') return <AISummaryScreen onBack={() => navigateTo('dashboard')} />
+  if (appState === 'daily_challenge') return <DailyChallengeScreen onBack={() => navigateTo('dashboard')} />
   return (
     <DashboardScreen
-      onStartWorkout={() => setAppState('workout')}
-      onOpenLibrary={() => setAppState('exercises')}
-      onOpenAnalytics={() => setAppState('analytics')}
-      onOpenProfile={() => setAppState('profile')}
-      onOpenPrograms={() => setAppState('programs')}
-      onOpenAISummary={() => setAppState('ai_summary')}
-      onOpenDailyChallenge={() => setAppState('daily_challenge')}
+      onStartWorkout={() => navigateTo('workout')}
+      onOpenLibrary={() => navigateTo('exercises')}
+      onOpenAnalytics={() => navigateTo('analytics')}
+      onOpenProfile={() => navigateTo('profile')}
+      onOpenPrograms={() => navigateTo('programs')}
+      onOpenAISummary={() => navigateTo('ai_summary')}
+      onOpenDailyChallenge={() => navigateTo('daily_challenge')}
       syncStatus={syncStatus}
     />
   )
