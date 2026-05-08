@@ -126,7 +126,8 @@ export default function ExploreRoutinesScreen({ onBack, onRoutineSaved }: Props)
           const { data: inserted, error: insertError } = await supabase
             .from('template_exercises')
             .insert(exerciseRows)
-          console.log('Insert result:', inserted, 'Error:', insertError)
+          console.log('template_exercises insert:', inserted, insertError)
+          if (insertError) alert('template_exercises insert error: ' + insertError.message)
         }
       }
 
