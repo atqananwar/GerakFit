@@ -124,11 +124,10 @@ export default function WorkoutLogger({ onBack, templateId }: Props) {
       .select(`
         id, name,
         template_exercises (
-          id, exercise_order, sets,
+          id, sort_order, target_sets,
           exercises (
             id, name, primary_muscle, secondary_muscles,
-            equipment, movement_pattern, difficulty,
-            instructions, common_mistakes
+            equipment, difficulty
           )
         )
       `)
@@ -139,13 +138,13 @@ export default function WorkoutLogger({ onBack, templateId }: Props) {
     if (!template?.template_exercises?.length) return
 
     const sorted = [...template.template_exercises]
-      .sort((a: any, b: any) => (a.exercise_order ?? 0) - (b.exercise_order ?? 0))
+      .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
 
     const preloaded: SessionExercise[] = sorted
       .filter((te: any) => te.exercises)
       .map((te: any) => {
         const ex = te.exercises as Exercise
-        const numSets = te.sets ?? 3
+        const numSets = te.target_sets ?? 3
         return {
           localId: genId(),
           exercise: ex,

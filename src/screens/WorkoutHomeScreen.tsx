@@ -45,7 +45,7 @@ export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNe
     if (!user) return
     const { data } = await supabase
       .from('programs')
-      .select('id, name, split_type, workout_templates(id, name, day_type, sort_order)')
+      .select('id, name, split_type, created_at, workout_templates(id, name, day_type, sort_order)')
       .eq('user_id', user.id)
       .eq('is_active', true)
       .order('created_at', { ascending: false })
