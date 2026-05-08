@@ -84,37 +84,56 @@ export default function ExploreRoutinesScreen({ onBack, onRoutineSaved }: Props)
       console.log('Templates created:', JSON.stringify(templates, null, 2))
 
       // Step 3: Insert template_exercises
-      // Strip trailing "3x10", "4x8-12", "1 set" etc. to get clean exercise names
-      const allExerciseNames = [...new Set(
-        routine.workouts.flatMap(w =>
-          w.exercises.map(e => e.replace(/\s+\d+x[\d-]+$|\s+\d+\s+set.*$/i, '').trim())
+      const allExerciseNames = routine.workouts.flatMap(w =>
+        w.exercises.map(e => e
+          .replace(/\s+\d+x[\d\-]+s?$/i, '')
+          .replace(/\s+\d+-\d+$/i, '')
+          .replace(/\s+\d+ set[s]?$/i, '')
+          .trim()
         )
-      )]
+      )
 
-      console.log('Looking up exercises:', allExerciseNames)
+      console.log('Exercise names to match:', allExerciseNames)
 
-      const { data: dbExercises } = await supabase
-        .from('exercises')
-        .select('id, name')
-        .in('name', allExerciseNames)
+      // Fuzzy match each exercise name against DB using ilike
+      const exerciseMap: Record<string, string> = {}
+      for (const name of allExerciseNames) {
+        if (name === 'Warm Up') {
+          const { data } = await supabase.from('exercises').select('id, name').ilike('name', '%Warm Up%').limit(1)
+          if (data?.[0]) exerciseMap[name] = data[0].id
+          continue
+        }
+        // Try exact match first
+        const { data: exact } = await supabase.from('exercises').select('id, name').ilike('name', name).limit(1)
+        if (exact?.[0]) { exerciseMap[name] = exact[0].id; continue }
+        // Fall back to first 2 words partial match
+        const firstTwoWords = name.split(' ').slice(0, 2).join(' ')
+        const { data: partial } = await supabase.from('exercises').select('id, name').ilike('name', `%${firstTwoWords}%`).limit(1)
+        if (partial?.[0]) exerciseMap[name] = partial[0].id
+      }
 
-      console.log('Found in DB:', JSON.stringify(dbExercises, null, 2))
+      console.log('DB exercises found:', Object.keys(exerciseMap))
+      console.log('Exercise map result:', exerciseMap)
 
-      if (templates && dbExercises) {
+      if (templates) {
         for (const tmpl of templates) {
           const workout = routine.workouts.find(w => w.name === tmpl.name)
           if (!workout) continue
 
           const exerciseRows = workout.exercises
             .map((exStr, i) => {
-              const cleanName = exStr.replace(/\s+\d+x[\d-]+$|\s+\d+\s+set.*$/i, '').trim()
-              const dbEx = dbExercises.find(e => e.name === cleanName)
-              if (!dbEx) return null
+              const cleanName = exStr
+                .replace(/\s+\d+x[\d\-]+s?$/i, '')
+                .replace(/\s+\d+-\d+$/i, '')
+                .replace(/\s+\d+ set[s]?$/i, '')
+                .trim()
+              const exerciseId = exerciseMap[cleanName]
+              if (!exerciseId) return null
               const setsMatch = exStr.match(/(\d+)x/)
               const targetSets = setsMatch ? parseInt(setsMatch[1]) : 3
               return {
                 template_id: tmpl.id,
-                exercise_id: dbEx.id,
+                exercise_id: exerciseId,
                 sort_order: i,
                 target_sets: targetSets,
               }
