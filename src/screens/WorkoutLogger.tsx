@@ -118,6 +118,7 @@ export default function WorkoutLogger({ onBack, templateId }: Props) {
   }
 
   async function loadTemplateExercises(tid: string) {
+    console.log('Loading template:', tid)
     const { data: template } = await supabase
       .from('workout_templates')
       .select(`
@@ -134,6 +135,7 @@ export default function WorkoutLogger({ onBack, templateId }: Props) {
       .eq('id', tid)
       .single()
 
+    console.log('Template data returned:', JSON.stringify(template, null, 2))
     if (!template?.template_exercises?.length) return
 
     const sorted = [...template.template_exercises]

@@ -49,7 +49,10 @@ export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNe
       .eq('user_id', user.id)
       .eq('is_active', true)
       .order('created_at', { ascending: false })
-    if (data) setSavedRoutines(data as SavedRoutine[])
+    if (data) {
+      console.log('savedRoutines loaded:', JSON.stringify(data, null, 2))
+      setSavedRoutines(data as SavedRoutine[])
+    }
   }
 
   useEffect(() => { loadSavedRoutines() }, [user, refreshKey])
@@ -124,6 +127,7 @@ export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNe
             .slice()
             .sort((a, b) => a.sort_order - b.sort_order)
 
+          console.log('routine:', routine.name, 'templates:', routine.workout_templates)
           const isExpanded = expandedRoutine === routine.id
           const dayCount = days.length
 
@@ -168,7 +172,7 @@ export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNe
                     {day.name}
                   </div>
                   <button
-                    onClick={() => onStartRoutine(day.id)}
+                    onClick={() => { console.log('Starting template id:', day.id, 'day name:', day.name); onStartRoutine(day.id) }}
                     style={{ width: '100%', padding: '12px', marginTop: '10px', background: '#1D9E75', border: 'none', borderRadius: '10px', color: '#ffffff', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}
                   >
                     Start Routine
