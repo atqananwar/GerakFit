@@ -72,7 +72,7 @@ function AppContent() {
   if (appState === 'workout') return <WorkoutLogger onBack={() => navigateTo('dashboard')} templateId={activeTemplateId} />
   if (appState === 'exercises') return <ExerciseLibrary onBack={() => navigateTo('dashboard')} />
   if (appState === 'analytics') return <AnalyticsScreen onBack={() => navigateTo('dashboard')} />
-  if (appState === 'profile') return <ProfileScreen onBack={() => navigateTo('dashboard')} onNavigateAnalytics={() => navigateTo('analytics')} onNavigateExercises={() => navigateTo('exercises')} />
+  if (appState === 'profile') return <ProfileScreen onNavigate={(screen) => navigateTo(screen)} activeTab="profile" />
   if (appState === 'programs') return (
     <WorkoutHomeScreen
       onStartWorkout={() => { setActiveTemplateId(undefined); navigateTo('workout') }}
