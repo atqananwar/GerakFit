@@ -33,11 +33,6 @@ interface WeeklyStats {
   targetDays: number
 }
 
-const NAV_ITEMS = [
-  { id: 'dashboard', label: 'Home' },
-  { id: 'workout', label: 'Workout' },
-  { id: 'profile', label: 'Profile' },
-]
 
 const GOAL_LABELS: Record<string, string> = {
   muscle_gain: 'Build muscle',
@@ -59,7 +54,7 @@ interface Props {
   syncStatus?: SyncStatus
 }
 
-export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpenProfile, onOpenPrograms, onOpenAISummary, onOpenDailyChallenge, syncStatus }: Props) {
+export default function DashboardScreen({ onStartWorkout, onOpenAnalytics: _onOpenAnalytics, onOpenProfile, onOpenPrograms, onOpenAISummary, onOpenDailyChallenge, syncStatus }: Props) {
   const { user } = useAuth()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>([])
@@ -311,22 +306,27 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
       </div>
 
       {/* Bottom nav */}
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: card, borderTop: `0.5px solid ${border}`, display: 'flex', justifyContent: 'space-around', padding: '0 0 16px', zIndex: 100 }}>
-        {NAV_ITEMS.map(item => (
-          <button
-            key={item.id}
-            onClick={() => {
-              if (item.id === 'profile') onOpenProfile()
-              else if (item.id === 'programs') onOpenPrograms()
-              else if (item.id === 'progress') onOpenAnalytics()
-              else if (item.id === 'workout') onOpenPrograms()
-              else setActiveNav(item.id)
-            }}
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', borderTop: activeNav === item.id ? '2px solid #1D9E75' : '2px solid transparent', borderLeft: 'none', borderRight: 'none', borderBottom: 'none', background: 'transparent', cursor: 'pointer', padding: '10px 20px 4px', color: activeNav === item.id ? '#1D9E75' : textTertiary, fontSize: '12px', fontWeight: activeNav === item.id ? 600 : 400 }}
-          >
-            {item.label}
-          </button>
-        ))}
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#0d0d0d', borderTop: '0.5px solid #1a1a1a', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '8px 0 20px', zIndex: 50 }}>
+        <button onClick={() => setActiveNav('dashboard')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: activeNav === 'dashboard' ? '#1D9E75' : '#555555' }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          <span style={{ fontSize: 11, fontWeight: 500 }}>Home</span>
+        </button>
+        <button onClick={onOpenPrograms} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: activeNav === 'workout' ? '#1D9E75' : '#555555' }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 4v16M18 4v16M8 4h-4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h4M8 18h-4a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h4M16 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-4M16 18h4a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-4M8 12h8"/>
+          </svg>
+          <span style={{ fontSize: 11, fontWeight: 500 }}>Workout</span>
+        </button>
+        <button onClick={onOpenProfile} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: activeNav === 'profile' ? '#1D9E75' : '#555555' }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span style={{ fontSize: 11, fontWeight: 500 }}>Profile</span>
+        </button>
       </div>
 
     </div>

@@ -409,21 +409,27 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
       </div>
 
       {/* 3. Bottom tab bar */}
-      <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-around', background: '#0d0d0d', borderTop: '0.5px solid #1a1a1a', padding: '10px 0 20px' }}>
-        {[
-          { id: 'dashboard', label: 'Home', icon: '⌂' },
-          { id: 'programs', label: 'Workout', icon: '⊞' },
-          { id: 'profile', label: 'Profile', icon: '◯' },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => tab.id !== 'profile' && onNavigate(tab.id as 'dashboard' | 'programs')}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}
-          >
-            <span style={{ fontSize: '22px', color: tab.id === activeTab ? '#1D9E75' : '#555' }}>{tab.icon}</span>
-            <span style={{ fontSize: '11px', color: tab.id === activeTab ? '#1D9E75' : '#555' }}>{tab.label}</span>
-          </button>
-        ))}
+      <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-around', alignItems: 'center', background: '#0d0d0d', borderTop: '0.5px solid #1a1a1a', padding: '8px 0 20px', position: 'relative', zIndex: 50 }}>
+        <button onClick={() => onNavigate('dashboard')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: activeTab === 'dashboard' ? '#1D9E75' : '#555555' }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          <span style={{ fontSize: 11, fontWeight: 500 }}>Home</span>
+        </button>
+        <button onClick={() => onNavigate('programs')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: activeTab === 'programs' ? '#1D9E75' : '#555555' }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 4v16M18 4v16M8 4h-4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h4M8 18h-4a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h4M16 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-4M16 18h4a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-4M8 12h8"/>
+          </svg>
+          <span style={{ fontSize: 11, fontWeight: 500 }}>Workout</span>
+        </button>
+        <button style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: activeTab === 'profile' ? '#1D9E75' : '#555555' }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span style={{ fontSize: 11, fontWeight: 500 }}>Profile</span>
+        </button>
       </div>
 
       {/* Settings overlay */}

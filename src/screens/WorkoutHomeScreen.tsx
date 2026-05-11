@@ -24,11 +24,6 @@ interface SavedRoutine {
   }[]
 }
 
-const NAV_ITEMS = [
-  { id: 'home', label: 'Home' },
-  { id: 'workout', label: 'Workout' },
-  { id: 'profile', label: 'Profile' },
-]
 
 export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNewRoutine, onExploreRoutines, onHome, onOpenProfile, refreshKey }: Props) {
   const { user } = useAuth()
@@ -186,34 +181,27 @@ export default function WorkoutHomeScreen({ onStartWorkout, onStartRoutine, onNe
       </div>
 
       {/* Bottom nav */}
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#1c1c1e', borderTop: '0.5px solid #2a2a2a', display: 'flex', justifyContent: 'space-around', padding: '0 0 16px', zIndex: 100 }}>
-        {NAV_ITEMS.map(item => (
-          <button
-            key={item.id}
-            onClick={() => {
-              if (item.id === 'home') onHome()
-              else if (item.id === 'profile') onOpenProfile()
-            }}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '3px',
-              borderTop: item.id === 'workout' ? '2px solid #378ADD' : '2px solid transparent',
-              borderLeft: 'none',
-              borderRight: 'none',
-              borderBottom: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              padding: '10px 20px 4px',
-              color: item.id === 'workout' ? '#378ADD' : '#666666',
-              fontSize: '12px',
-              fontWeight: item.id === 'workout' ? 600 : 400,
-            }}
-          >
-            {item.label}
-          </button>
-        ))}
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#0d0d0d', borderTop: '0.5px solid #1a1a1a', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '8px 0 20px', zIndex: 50 }}>
+        <button onClick={onHome} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: '#555555' }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          <span style={{ fontSize: 11, fontWeight: 500 }}>Home</span>
+        </button>
+        <button style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: '#1D9E75' }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 4v16M18 4v16M8 4h-4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h4M8 18h-4a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h4M16 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-4M16 18h4a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-4M8 12h8"/>
+          </svg>
+          <span style={{ fontSize: 11, fontWeight: 500 }}>Workout</span>
+        </button>
+        <button onClick={onOpenProfile} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: '#555555' }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span style={{ fontSize: 11, fontWeight: 500 }}>Profile</span>
+        </button>
       </div>
     </div>
   )
