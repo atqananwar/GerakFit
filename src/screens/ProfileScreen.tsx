@@ -3,7 +3,11 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { signOut } from '../lib/auth'
 
-interface Props { onBack: () => void }
+interface Props {
+  onBack: () => void
+  onNavigateAnalytics: () => void
+  onNavigateExercises: () => void
+}
 
 interface Profile {
   full_name: string; goal: string; experience_level: string
@@ -39,11 +43,17 @@ const EXPERIENCE_OPTIONS = [
   { id: 'advanced', label: 'Advanced' },
 ]
 
-type Section = 'main' | 'edit_profile' | 'edit_equipment' | 'body_log'
+type Section = 'main' | 'edit_profile' | 'edit_equipment' | 'body_log' | 'settings'
 
-export default function ProfileScreen({ onBack }: Props) {
-  const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') !== 'false')
+export default function ProfileScreen({ onBack: _onBack, onNavigateAnalytics, onNavigateExercises }: Props) {
+  const [themeChoice, setThemeChoice] = useState<'system' | 'light' | 'dark'>(() =>
+    (localStorage.getItem('gerakfit-theme') as 'system' | 'light' | 'dark') || 'dark'
+  )
+  const darkMode = themeChoice === 'dark' ||
+    (themeChoice === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+
   useEffect(() => { document.body.style.background = darkMode ? '#0d0d0d' : '#f9fafb' }, [darkMode])
+
   const { user } = useAuth()
   const [section, setSection] = useState<Section>('main')
   const [profile, setProfile] = useState<Profile>({ full_name:'', goal:'', experience_level:'', training_days_per_week:3, session_length_minutes:60, injury_notes:'', avatar_url:'' })
@@ -56,6 +66,13 @@ export default function ProfileScreen({ onBack }: Props) {
   const [uploading, setUploading] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
   const [loading, setLoading] = useState(true)
+  const [totalSessions, setTotalSessions] = useState(0)
+  const [streakDays, setStreakDays] = useState(0)
+  const [totalPRs, setTotalPRs] = useState(0)
+  const [showThemePicker, setShowThemePicker] = useState(false)
+  const [unitsChoice, setUnitsChoice] = useState<'kg' | 'lb'>(() =>
+    (localStorage.getItem('gerakfit-units') as 'kg' | 'lb') || 'kg'
+  )
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { if (user) load() }, [user])
@@ -63,15 +80,33 @@ export default function ProfileScreen({ onBack }: Props) {
   async function load() {
     if (!user) return
     setLoading(true)
-    const [pRes, eRes, bRes] = await Promise.all([
+    const [pRes, eRes, bRes, sRes, prRes] = await Promise.all([
       supabase.from('profiles').select('full_name,goal,experience_level,training_days_per_week,session_length_minutes,injury_notes,avatar_url').eq('id', user.id).single(),
       supabase.from('user_equipment').select('equipment_name').eq('user_id', user.id),
       supabase.from('body_logs').select('id,log_date,weight_kg,notes').eq('user_id', user.id).order('log_date', { ascending: false }).limit(15),
+      supabase.from('workout_sessions').select('id,workout_date').eq('user_id', user.id).eq('status', 'completed').order('workout_date', { ascending: false }),
+      supabase.from('personal_records').select('id').eq('user_id', user.id),
     ])
     if (pRes.data) setProfile({ full_name: pRes.data.full_name??'', goal: pRes.data.goal??'', experience_level: pRes.data.experience_level??'', training_days_per_week: pRes.data.training_days_per_week??3, session_length_minutes: pRes.data.session_length_minutes??60, injury_notes: pRes.data.injury_notes??'', avatar_url: pRes.data.avatar_url??'' })
     const sel = new Set((eRes.data??[]).map(e => e.equipment_name))
     setEquipCats(EQUIPMENT_CATEGORIES.map(c => ({ category: c.category, items: c.items.map(n => ({ name: n, selected: sel.has(n) })) })))
     if (bRes.data) setBodyLogs(bRes.data as BodyLog[])
+    if (sRes.data) {
+      setTotalSessions(sRes.data.length)
+      const uniqueDates = [...new Set(sRes.data.map(s => s.workout_date))].sort().reverse()
+      let streak = 0
+      let expected = new Date().toISOString().split('T')[0]
+      for (const date of uniqueDates) {
+        if (date === expected) {
+          streak++
+          const d = new Date(date)
+          d.setDate(d.getDate() - 1)
+          expected = d.toISOString().split('T')[0]
+        } else { break }
+      }
+      setStreakDays(streak)
+    }
+    if (prRes.data) setTotalPRs(prRes.data.length)
     setLoading(false)
   }
 
@@ -114,10 +149,27 @@ export default function ProfileScreen({ onBack }: Props) {
     setSaving(false)
   }
 
+  function applyTheme(t: 'system' | 'light' | 'dark') {
+    setThemeChoice(t)
+    localStorage.setItem('gerakfit-theme', t)
+    const isDark = t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    localStorage.setItem('gerakfit-dark', String(isDark))
+  }
+
   function showSaved() { setSaveMsg('Saved!'); setTimeout(() => setSaveMsg(''), 2000) }
   function toggleItem(ci: number, ii: number) { setEquipCats(p => p.map((c,x) => x!==ci?c:{ ...c, items: c.items.map((item,y) => y!==ii?item:{ ...item, selected: !item.selected }) })) }
   function toggleAll(ci: number) { setEquipCats(p => p.map((c,x) => { if(x!==ci) return c; const all = c.items.every(i=>i.selected); return { ...c, items: c.items.map(i=>({ ...i, selected: !all })) } })) }
   function toggleCat(cat: string) { setExpandedCats(p => { const n=new Set(p); n.has(cat)?n.delete(cat):n.add(cat); return n }) }
+
+  function settingsRow(icon: string, label: string, action?: () => void, right?: React.ReactNode) {
+    return (
+      <div onClick={action} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px', borderBottom: '0.5px solid #1a1a1a', cursor: action ? 'pointer' : 'default' }}>
+        <span style={{ fontSize: '18px', width: '28px', textAlign: 'center' }}>{icon}</span>
+        <span style={{ fontSize: '15px', color: '#fff', flex: 1 }}>{label}</span>
+        {right ?? <span style={{ fontSize: '18px', color: '#444' }}>›</span>}
+      </div>
+    )
+  }
 
   const totalSel = equipCats.reduce((s,c) => s+c.items.filter(i=>i.selected).length, 0)
   const goalLabel = GOAL_OPTIONS.find(g=>g.id===profile.goal)?.label??'—'
@@ -141,6 +193,7 @@ export default function ProfileScreen({ onBack }: Props) {
 
   if (loading) return <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'system-ui,sans-serif' }}><div style={{ fontSize:'13px', color:darkMode?'#666666':'#888888' }}>Loading...</div></div>
 
+  // ─── Edit Profile ─────────────────────────────────────────
   if (section === 'edit_profile') return (
     <div style={P}>
       <div style={H}><button onClick={()=>setSection('main')} style={BTN}>← Back</button><div style={{ fontSize:'18px', fontWeight:800, color:darkMode?'#f9fafb':'#111827', flex:1 }}>Edit profile</div>{saveMsg&&<div style={SM}>{saveMsg}</div>}</div>
@@ -156,6 +209,7 @@ export default function ProfileScreen({ onBack }: Props) {
     </div>
   )
 
+  // ─── Edit Equipment ───────────────────────────────────────
   if (section === 'edit_equipment') return (
     <div style={P}>
       <div style={H}><button onClick={()=>setSection('main')} style={BTN}>← Back</button><div style={{ fontSize:'18px', fontWeight:800, color:darkMode?'#f9fafb':'#111827', flex:1 }}>Equipment ({totalSel} selected)</div>{saveMsg&&<div style={SM}>{saveMsg}</div>}</div>
@@ -195,6 +249,7 @@ export default function ProfileScreen({ onBack }: Props) {
     </div>
   )
 
+  // ─── Body Log ─────────────────────────────────────────────
   if (section === 'body_log') return (
     <div style={P}>
       <div style={H}><button onClick={()=>setSection('main')} style={BTN}>← Back</button><div style={{ fontSize:'18px', fontWeight:800, color:darkMode?'#f9fafb':'#111827', flex:1 }}>Body weight log</div></div>
@@ -230,51 +285,190 @@ export default function ProfileScreen({ onBack }: Props) {
     </div>
   )
 
-  return (
-    <div style={P}>
-      <div style={H}><button onClick={onBack} style={BTN}>← Back</button><div style={{ fontSize:'18px', fontWeight:800, color:darkMode?'#f9fafb':'#111827', flex:1 }}>Profile</div>{saveMsg&&<div style={SM}>{saveMsg}</div>}</div>
-      <div style={B}>
-        <div style={{ textAlign:'center', marginBottom:'24px' }}>
-          <div style={{ position:'relative', display:'inline-block' }}>
-            {profile.avatar_url?(
-              <img src={profile.avatar_url} alt="avatar" style={{ width:'80px', height:'80px', borderRadius:'50%', objectFit:'cover', border:'2px solid #1D9E75' }} />
-            ):(
-              <div style={{ width:'80px', height:'80px', borderRadius:'50%', background:'#E1F5EE', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'28px', fontWeight:700, color:'#085041', border:'2px solid #1D9E75' }}>{initials}</div>
-            )}
-            <button onClick={()=>fileRef.current?.click()} disabled={uploading} style={{ position:'absolute', bottom:0, right:0, width:'26px', height:'26px', borderRadius:'50%', background:'#1D9E75', border:'2px solid #fff', color:'#fff', fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>{uploading?'…':'+'}</button>
-            <input ref={fileRef} type="file" accept="image/*" style={{ display:'none' }} onChange={e=>{ if(e.target.files?.[0]) uploadAvatar(e.target.files[0]) }} />
+  // ─── Settings ─────────────────────────────────────────────
+  if (section === 'settings') return (
+    <div style={{ minHeight: '100vh', background: '#0d0d0d', fontFamily: 'system-ui, sans-serif', paddingBottom: '40px' }}>
+      {/* Header */}
+      <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', background: '#0d0d0d' }}>
+        <button onClick={() => { setSection('main'); setShowThemePicker(false) }} style={{ background: 'none', border: 'none', color: '#888', fontSize: '14px', cursor: 'pointer', padding: '4px 0', marginRight: '12px' }}>← Back</button>
+        <div style={{ flex: 1, textAlign: 'center', fontSize: '16px', fontWeight: 700, color: '#fff', marginRight: '40px' }}>Settings</div>
+      </div>
+
+      {/* Account group */}
+      <div style={{ fontSize: '12px', color: '#555', textTransform: 'uppercase', letterSpacing: '1px', padding: '16px 16px 8px' }}>Account</div>
+      <div style={{ background: '#1c1c1e' }}>
+        {settingsRow('👤', 'Profile', () => setSection('edit_profile'))}
+        {settingsRow('⚖️', 'Body Log', () => setSection('body_log'))}
+      </div>
+
+      {/* Preferences group */}
+      <div style={{ fontSize: '12px', color: '#555', textTransform: 'uppercase', letterSpacing: '1px', padding: '16px 16px 8px' }}>Preferences</div>
+      <div style={{ background: '#1c1c1e' }}>
+        {/* Theme row */}
+        <div onClick={() => setShowThemePicker(p => !p)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px', borderBottom: '0.5px solid #1a1a1a', cursor: 'pointer' }}>
+          <span style={{ fontSize: '18px', width: '28px', textAlign: 'center' }}>🎨</span>
+          <span style={{ fontSize: '15px', color: '#fff', flex: 1 }}>Theme</span>
+          <span style={{ fontSize: '13px', color: '#555', marginRight: '4px' }}>{themeChoice === 'system' ? 'System' : themeChoice === 'light' ? 'Light' : 'Dark'}</span>
+          <span style={{ fontSize: '18px', color: '#444' }}>›</span>
+        </div>
+        {showThemePicker && (
+          <div style={{ background: '#141414', borderBottom: '0.5px solid #1a1a1a' }}>
+            {(['system', 'light', 'dark'] as const).map(t => (
+              <div key={t} onClick={() => applyTheme(t)} style={{ display: 'flex', alignItems: 'center', padding: '12px 16px 12px 56px', cursor: 'pointer', borderBottom: '0.5px solid #1a1a1a' }}>
+                <span style={{ fontSize: '14px', color: themeChoice === t ? '#1D9E75' : '#888', flex: 1 }}>
+                  {t === 'system' ? 'System Default' : t === 'light' ? 'Light' : 'Dark'}
+                </span>
+                {themeChoice === t && <span style={{ color: '#1D9E75', fontSize: '16px' }}>✓</span>}
+              </div>
+            ))}
           </div>
-          <div style={{ fontSize:'18px', fontWeight:700, color:darkMode?'#f9fafb':'#111827', marginTop:'10px' }}>{profile.full_name||user?.email}</div>
-          <div style={{ fontSize:'12px', color:'#666666', marginTop:'2px' }}>{user?.email}</div>
+        )}
+        {/* Units row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px', borderBottom: '0.5px solid #1a1a1a' }}>
+          <span style={{ fontSize: '18px', width: '28px', textAlign: 'center' }}>📏</span>
+          <span style={{ fontSize: '15px', color: '#fff', flex: 1 }}>Units</span>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            {(['kg', 'lb'] as const).map(u => (
+              <button key={u} onClick={() => { setUnitsChoice(u); localStorage.setItem('gerakfit-units', u) }} style={{ padding: '4px 12px', borderRadius: '6px', border: 'none', background: unitsChoice === u ? '#1D9E75' : '#2a2a2a', color: unitsChoice === u ? '#fff' : '#888', fontSize: '13px', cursor: 'pointer' }}>{u}</button>
+            ))}
+          </div>
+        </div>
+        {/* Language row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px' }}>
+          <span style={{ fontSize: '18px', width: '28px', textAlign: 'center' }}>🌐</span>
+          <span style={{ fontSize: '15px', color: '#fff', flex: 1 }}>Language</span>
+          <span style={{ fontSize: '13px', color: '#555', marginRight: '4px' }}>English</span>
+          <span style={{ fontSize: '18px', color: '#444' }}>›</span>
+        </div>
+      </div>
+
+      {/* Data group */}
+      <div style={{ fontSize: '12px', color: '#555', textTransform: 'uppercase', letterSpacing: '1px', padding: '16px 16px 8px' }}>Data</div>
+      <div style={{ background: '#1c1c1e' }}>
+        {settingsRow('📤', 'Export Data', () => console.log('export'))}
+        {settingsRow('📥', 'Import Data', () => console.log('import'))}
+      </div>
+
+      {/* Help group */}
+      <div style={{ fontSize: '12px', color: '#555', textTransform: 'uppercase', letterSpacing: '1px', padding: '16px 16px 8px' }}>Help</div>
+      <div style={{ background: '#1c1c1e' }}>
+        {settingsRow('❓', 'Help & Support', () => console.log('help'))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px' }}>
+          <span style={{ fontSize: '18px', width: '28px', textAlign: 'center' }}>ℹ️</span>
+          <span style={{ fontSize: '15px', color: '#fff', flex: 1 }}>About GerakFit</span>
+          <span style={{ fontSize: '13px', color: '#555' }}>1.0.0</span>
+        </div>
+      </div>
+
+      {/* Sign out */}
+      <div style={{ fontSize: '12px', color: '#555', textTransform: 'uppercase', letterSpacing: '1px', padding: '16px 16px 8px' }}>Session</div>
+      <div style={{ background: '#1c1c1e' }}>
+        <div onClick={() => signOut()} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px', cursor: 'pointer' }}>
+          <span style={{ fontSize: '18px', width: '28px', textAlign: 'center' }}>🚪</span>
+          <span style={{ fontSize: '15px', color: '#ef4444', flex: 1 }}>Sign Out</span>
+        </div>
+      </div>
+    </div>
+  )
+
+  // ─── Main view ────────────────────────────────────────────
+  return (
+    <div style={{ minHeight: '100vh', background: '#0d0d0d', fontFamily: 'system-ui, sans-serif', paddingBottom: '32px' }}>
+
+      {/* Header — no back button */}
+      <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: '22px', fontWeight: 800, color: '#fff' }}>
+          {profile.full_name || user?.email?.split('@')[0] || 'Profile'}
+        </div>
+        <div style={{ display: 'flex' }}>
+          <button onClick={() => setSection('edit_profile')} style={{ fontSize: '20px', color: '#888', background: 'none', border: 'none', padding: '4px 8px', cursor: 'pointer' }}>✏️</button>
+          <button onClick={() => console.log('share')} style={{ fontSize: '20px', color: '#888', background: 'none', border: 'none', padding: '4px 8px', cursor: 'pointer' }}>📤</button>
+          <button onClick={() => setSection('settings')} style={{ fontSize: '20px', color: '#888', background: 'none', border: 'none', padding: '4px 8px', cursor: 'pointer' }}>⚙️</button>
+        </div>
+      </div>
+
+      <div style={{ padding: '0 20px 20px', maxWidth: '500px', margin: '0 auto' }}>
+
+        {/* Avatar + stats row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
+          {/* Avatar 72px */}
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            {profile.avatar_url ? (
+              <img src={profile.avatar_url} alt="avatar" style={{ width: '72px', height: '72px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #1D9E75' }} />
+            ) : (
+              <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: '#E1F5EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 700, color: '#085041', border: '2px solid #1D9E75' }}>{initials}</div>
+            )}
+            <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ position: 'absolute', bottom: 0, right: 0, width: '22px', height: '22px', borderRadius: '50%', background: '#1D9E75', border: '2px solid #0d0d0d', color: '#fff', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{uploading ? '…' : '+'}</button>
+            <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { if (e.target.files?.[0]) uploadAvatar(e.target.files[0]) }} />
+          </div>
+
+          {/* Stats */}
+          <div style={{ display: 'flex', gap: '24px' }}>
+            {[
+              { value: totalSessions, label: 'Workouts' },
+              { value: `${streakDays}d`, label: 'Streak' },
+              { value: totalPRs, label: 'PRs' },
+            ].map(stat => (
+              <div key={stat.label}>
+                <div style={{ fontSize: '20px', fontWeight: 800, color: '#fff' }}>{stat.value}</div>
+                <div style={{ fontSize: '11px', color: '#555', marginTop: '2px' }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {latestWeight&&<div style={{ background:darkMode?'#1c1c1e':'#E1F5EE', border:darkMode?'0.5px solid #2a2a2a':'none', borderRadius:'12px', padding:'12px 16px', marginBottom:'16px', display:'flex', justifyContent:'space-between', alignItems:'center' }}><div><div style={{ fontSize:'10px', color:'#666', fontWeight:500, textTransform:'uppercase', letterSpacing:'0.5px' }}>Current weight</div><div style={{ fontSize:'28px', fontWeight:800, color:'#1D9E75', marginTop:'2px' }}>{latestWeight} kg</div></div><button onClick={()=>setSection('body_log')} style={{ fontSize:'12px', color:'#1D9E75', background:'transparent', border:'none', cursor:'pointer', fontWeight:500 }}>Update →</button></div>}
-
-        <div style={CARD}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'14px' }}><div style={CT}>Training profile</div><button onClick={()=>setSection('edit_profile')} style={EBTN}>Edit</button></div>
-          {[['Goal',goalLabel],['Experience',expLabel],['Training days',`${profile.training_days_per_week} days/week`],['Session length',`${profile.session_length_minutes} min`],['Injuries',profile.injury_notes||'None noted']].map(([l,v])=>(
-            <div key={l} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderBottom:darkMode?'0.5px solid #2a2a2a':'0.5px solid #f3f4f6' }}><span style={{ fontSize:'13px', color:'#666666' }}>{l}</span><span style={{ fontSize:'13px', fontWeight:500, color:darkMode?'#ffffff':'#111827', textAlign:'right', maxWidth:'55%' }}>{v}</span></div>
-          ))}
+        {/* Name + email */}
+        <div style={{ marginBottom: '20px' }}>
+          <div style={{ fontSize: '16px', fontWeight: 600, color: '#fff' }}>{profile.full_name || user?.email}</div>
+          <div style={{ fontSize: '12px', color: '#555', marginTop: '2px' }}>{user?.email}</div>
         </div>
 
-        <div style={CARD}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px' }}><div style={CT}>Equipment <span style={{ fontWeight:400, color:darkMode?'#666666':'#888888' }}>({totalSel} items)</span></div><button onClick={()=>setSection('edit_equipment')} style={EBTN}>Edit</button></div>
-          {totalSel===0?<span style={{ fontSize:'13px', color:darkMode?'#666666':'#888888' }}>None selected</span>:equipCats.filter(c=>c.items.some(i=>i.selected)).map(c=>(
-            <div key={c.category} style={{ marginBottom:'8px' }}>
-              <div style={{ fontSize:'11px', fontWeight:500, color:darkMode?'#666666':'#888888', textTransform:'uppercase', letterSpacing:'0.4px', marginBottom:'5px' }}>{c.category}</div>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:'5px' }}>{c.items.filter(i=>i.selected).map(i=><span key={i.name} style={{ padding:'2px 9px', borderRadius:'20px', fontSize:'11px', background:darkMode?'#2a2a2a':'#E1F5EE', color:darkMode?'#1D9E75':'#085041' }}>{i.name}</span>)}</div>
+        {/* Current weight card */}
+        {latestWeight && (
+          <div style={{ background: '#1c1c1e', border: '0.5px solid #2a2a2a', borderRadius: '12px', padding: '12px 16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: '10px', color: '#666', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Current weight</div>
+              <div style={{ fontSize: '28px', fontWeight: 800, color: '#1D9E75', marginTop: '2px' }}>{latestWeight} kg</div>
+            </div>
+            <button onClick={() => setSection('body_log')} style={{ fontSize: '12px', color: '#1D9E75', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 500 }}>Update →</button>
+          </div>
+        )}
+
+        {/* Dashboard section label */}
+        <div style={{ fontSize: '12px', color: '#555', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px', marginTop: '20px' }}>Dashboard</div>
+
+        {/* 2×2 grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '20px' }}>
+          {[
+            { icon: '📊', label: 'Statistics', action: onNavigateAnalytics },
+            { icon: '🏋️', label: 'Exercises', action: onNavigateExercises },
+            { icon: '⚖️', label: 'Body Log', action: () => setSection('body_log') },
+            { icon: '🔧', label: 'Equipment', action: () => setSection('edit_equipment') },
+          ].map(item => (
+            <div key={item.label} onClick={item.action} style={{ background: '#1c1c1e', border: '0.5px solid #2a2a2a', borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+              <span style={{ fontSize: '20px' }}>{item.icon}</span>
+              <span style={{ fontSize: '14px', fontWeight: 600, color: '#fff' }}>{item.label}</span>
             </div>
           ))}
         </div>
 
-        <div style={CARD}>
-          <div style={CT}>Quick actions</div>
-          {[['Log body weight',()=>setSection('body_log')],['Update equipment',()=>setSection('edit_equipment')]].map(([l,a])=>(
-            <div key={l as string} onClick={a as ()=>void} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderBottom:darkMode?'0.5px solid #2a2a2a':'0.5px solid #f3f4f6', cursor:'pointer' }}><span style={{ fontSize:'14px', color:darkMode?'#f9fafb':'#111827' }}>{l as string}</span><span style={{ color:darkMode?'#666666':'#888888', fontSize:'16px' }}>›</span></div>
+        {/* Training profile card */}
+        <div style={{ background: '#1c1c1e', border: '0.5px solid #2a2a2a', borderRadius: '12px', padding: '16px 18px', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <div style={CT}>Training profile</div>
+            <button onClick={() => setSection('edit_profile')} style={EBTN}>Edit</button>
+          </div>
+          {[['Goal', goalLabel], ['Experience', expLabel], ['Training days', `${profile.training_days_per_week} days/week`], ['Session length', `${profile.session_length_minutes} min`], ['Injuries', profile.injury_notes || 'None noted']].map(([l, v]) => (
+            <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '0.5px solid #2a2a2a' }}>
+              <span style={{ fontSize: '13px', color: '#666666' }}>{l}</span>
+              <span style={{ fontSize: '13px', fontWeight: 500, color: '#ffffff', textAlign: 'right', maxWidth: '55%' }}>{v}</span>
+            </div>
           ))}
         </div>
 
-        <button onClick={()=>signOut()} style={{ width:'100%', padding:'12px', borderRadius:'10px', border:'0.5px solid #2a1a1a', background:darkMode?'#1c1c1e':'#fff', color:'#ef4444', fontSize:'14px', fontWeight:500, cursor:'pointer', marginTop:'4px' }}>Sign out</button>
+        {/* Sign out */}
+        {saveMsg && <div style={{ ...SM, textAlign: 'center', marginBottom: '8px' }}>{saveMsg}</div>}
+        <button onClick={() => signOut()} style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '0.5px solid #2a1a1a', background: '#1c1c1e', color: '#ef4444', fontSize: '14px', fontWeight: 500, cursor: 'pointer', marginTop: '4px' }}>Sign out</button>
       </div>
     </div>
   )

@@ -67,7 +67,7 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
   const [weeklyStats, setWeeklyStats] = useState<WeeklyStats>({ sessionsThisWeek: 0, targetDays: 3 })
   const [activeNav, setActiveNav] = useState('dashboard')
   const [loading, setLoading] = useState(true)
-  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('gerakfit-dark') !== 'false')
+  const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') !== 'false')
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const today = new Date()
 
@@ -174,13 +174,6 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics, onOpe
           <div style={{ fontSize: '12px', color: textSecondary, background: surfaceBg, padding: '4px 10px', borderRadius: '20px' }}>
             {GOAL_LABELS[profile?.goal ?? ''] ?? 'No goal set'}
           </div>
-          {/* Dark mode toggle */}
-          <button
-            onClick={() => setDarkMode(d => !d)}
-            style={{ width: '36px', height: '20px', borderRadius: '10px', border: 'none', background: darkMode ? '#1D9E75' : '#d1d5db', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}
-          >
-            <div style={{ position: 'absolute', top: '2px', left: darkMode ? '18px' : '2px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
-          </button>
         </div>
       </div>
 
