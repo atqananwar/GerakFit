@@ -19,22 +19,24 @@ type AppState = 'loading' | 'auth' | 'onboarding' | 'dashboard' | 'workout' | 'e
 
 function AppContent() {
   const { user, loading: authLoading } = useAuth()
+  const VALID_STATES: AppState[] = ['dashboard', 'workout', 'exercises', 'analytics',
+    'profile', 'programs', 'ai_summary', 'daily_challenge', 'explore_routines', 'create_routine']
+
   const [appState, setAppState] = useState<AppState>(() => {
-    const saved = sessionStorage.getItem('gerakfit-appstate')
-    return (saved as AppState) || 'loading'
+    try {
+      const saved = sessionStorage.getItem('gf-state') as AppState
+      if (saved && VALID_STATES.includes(saved)) return saved
+    } catch {}
+    return 'loading'
   })
   const [routineRefreshKey, setRoutineRefreshKey] = useState(0)
   const [activeTemplateId, setActiveTemplateId] = useState<string | undefined>()
   const syncStatus = 'idle' as const
 
   function navigateTo(state: AppState) {
-    sessionStorage.setItem('gerakfit-appstate', state)
+    try { sessionStorage.setItem('gf-state', state) } catch {}
     setAppState(state)
   }
-
-  useEffect(() => {
-    if (appState === 'auth') sessionStorage.removeItem('gerakfit-appstate')
-  }, [appState])
 
   useEffect(() => {
     if (authLoading) return
@@ -45,8 +47,15 @@ function AppContent() {
   async function checkOnboarding() {
     if (!user) return
     const { data } = await supabase.from('profiles').select('goal, experience_level').eq('id', user.id).single()
-    if (data?.goal && data?.experience_level) navigateTo('dashboard')
-    else navigateTo('onboarding')
+    if (data?.goal && data?.experience_level) {
+      try {
+        const savedState = sessionStorage.getItem('gf-state') as AppState
+        if (savedState && VALID_STATES.includes(savedState)) { setAppState(savedState); return }
+      } catch {}
+      navigateTo('dashboard')
+    } else {
+      navigateTo('onboarding')
+    }
   }
 
   if (appState === 'loading') return (
