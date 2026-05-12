@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../theme/ThemeContext'
 
 const EQUIPMENT_OPTIONS = [
   { id: 'Bodyweight', label: 'Bodyweight', desc: 'No equipment needed' },
@@ -30,8 +31,7 @@ interface Props {
 }
 
 export default function OnboardingScreen({ onComplete }: Props) {
-  const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') !== 'false')
-  useEffect(() => { document.body.style.background = darkMode ? '#0d0d0d' : '#f9fafb' }, [darkMode])
+  const { theme } = useTheme()
   const { user } = useAuth()
   const [step, setStep] = useState(1)
   const totalSteps = 4
@@ -118,52 +118,48 @@ export default function OnboardingScreen({ onComplete }: Props) {
   ]
 
   const stepTitleStyle: React.CSSProperties = {
-    fontSize: '26px', fontWeight: 800, color: darkMode ? '#ffffff' : '#111827', marginBottom: '6px',
+    fontSize: '26px', fontWeight: 800, color: theme.text, marginBottom: '6px',
   }
   const stepDescStyle: React.CSSProperties = {
-    fontSize: '14px', color: '#666', lineHeight: '1.5',
+    fontSize: '14px', color: theme.textSecondary, lineHeight: '1.5',
   }
 
   return (
     <div style={{
       minHeight: '100vh',
-      background: darkMode ? '#0d0d0d' : '#f9fafb',
+      background: theme.background,
       fontFamily: 'system-ui, sans-serif',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       padding: '32px 20px',
     }}>
-      {/* Header */}
       <div style={{ width: '100%', maxWidth: '420px', marginBottom: '28px' }}>
         <div style={{ fontSize: '32px', fontWeight: 800, letterSpacing: '-0.5px', marginBottom: '16px' }}>
           Gerak<span style={{ color: '#1D9E75' }}>Fit</span>
         </div>
 
-        {/* Progress bar */}
         <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
           {Array.from({ length: totalSteps }).map((_, i) => (
             <div key={i} style={{
               flex: 1, height: '3px', borderRadius: '2px',
-              background: i < step ? '#1D9E75' : (darkMode ? '#2a2a2a' : '#e5e7eb'),
+              background: i < step ? '#1D9E75' : theme.border,
               transition: 'background 0.3s',
             }} />
           ))}
         </div>
-        <div style={{ fontSize: '11px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Step {step} of {totalSteps}</div>
+        <div style={{ fontSize: '11px', color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Step {step} of {totalSteps}</div>
       </div>
 
-      {/* Card */}
       <div style={{
-        background: darkMode ? '#1c1c1e' : '#fff',
-        border: `0.5px solid ${darkMode ? '#2a2a2a' : '#e5e7eb'}`,
+        background: theme.card,
+        border: `0.5px solid ${theme.border}`,
         borderRadius: '16px',
         padding: '24px',
         width: '100%',
         maxWidth: '420px',
       }}>
 
-        {/* Step 1 — Goal */}
         {step === 1 && (
           <>
             <div style={stepTitleStyle}>What is your main goal?</div>
@@ -175,22 +171,20 @@ export default function OnboardingScreen({ onComplete }: Props) {
                   onClick={() => setData(prev => ({ ...prev, goal: g.id }))}
                   style={{
                     ...optionStyle,
-                    border: darkMode
-                      ? (data.goal === g.id ? '1.5px solid #1D9E75' : '0.5px solid #2a2a2a')
-                      : (data.goal === g.id ? '1.5px solid #1D9E75' : '1.5px solid #e5e7eb'),
-                    background: darkMode ? '#1c1c1e' : (data.goal === g.id ? '#E1F5EE' : '#fff'),
+                    border: data.goal === g.id ? '1.5px solid #1D9E75' : `0.5px solid ${theme.border}`,
+                    background: data.goal === g.id ? theme.primaryMuted : theme.card,
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{
                       width: '18px', height: '18px', borderRadius: '50%',
-                      border: `2px solid ${data.goal === g.id ? '#1D9E75' : '#d1d5db'}`,
+                      border: `2px solid ${data.goal === g.id ? '#1D9E75' : theme.border}`,
                       background: data.goal === g.id ? '#1D9E75' : 'transparent',
                       flexShrink: 0,
                     }} />
                     <div>
-                      <div style={{ fontSize: '15px', fontWeight: 600, color: darkMode ? (data.goal === g.id ? '#1D9E75' : '#ffffff') : (data.goal === g.id ? '#085041' : '#111827') }}>{g.label}</div>
-                      <div style={{ fontSize: '12px', color: darkMode ? (data.goal === g.id ? '#1D9E75' : '#888888') : (data.goal === g.id ? '#0F6E56' : '#6b7280'), marginTop: '1px' }}>{g.desc}</div>
+                      <div style={{ fontSize: '15px', fontWeight: 600, color: data.goal === g.id ? '#1D9E75' : theme.text }}>{g.label}</div>
+                      <div style={{ fontSize: '12px', color: data.goal === g.id ? '#1D9E75' : theme.textSecondary, marginTop: '1px' }}>{g.desc}</div>
                     </div>
                   </div>
                 </div>
@@ -199,7 +193,6 @@ export default function OnboardingScreen({ onComplete }: Props) {
           </>
         )}
 
-        {/* Step 2 — Experience */}
         {step === 2 && (
           <>
             <div style={stepTitleStyle}>What is your experience level?</div>
@@ -211,22 +204,20 @@ export default function OnboardingScreen({ onComplete }: Props) {
                   onClick={() => setData(prev => ({ ...prev, experience: e.id }))}
                   style={{
                     ...optionStyle,
-                    border: darkMode
-                      ? (data.experience === e.id ? '1.5px solid #1D9E75' : '0.5px solid #2a2a2a')
-                      : (data.experience === e.id ? '1.5px solid #1D9E75' : '1.5px solid #e5e7eb'),
-                    background: darkMode ? '#1c1c1e' : (data.experience === e.id ? '#E1F5EE' : '#fff'),
+                    border: data.experience === e.id ? '1.5px solid #1D9E75' : `0.5px solid ${theme.border}`,
+                    background: data.experience === e.id ? theme.primaryMuted : theme.card,
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{
                       width: '18px', height: '18px', borderRadius: '50%',
-                      border: `2px solid ${data.experience === e.id ? '#1D9E75' : '#d1d5db'}`,
+                      border: `2px solid ${data.experience === e.id ? '#1D9E75' : theme.border}`,
                       background: data.experience === e.id ? '#1D9E75' : 'transparent',
                       flexShrink: 0,
                     }} />
                     <div>
-                      <div style={{ fontSize: '15px', fontWeight: 600, color: darkMode ? (data.experience === e.id ? '#1D9E75' : '#ffffff') : (data.experience === e.id ? '#085041' : '#111827') }}>{e.label}</div>
-                      <div style={{ fontSize: '12px', color: darkMode ? (data.experience === e.id ? '#1D9E75' : '#888888') : (data.experience === e.id ? '#0F6E56' : '#6b7280'), marginTop: '1px' }}>{e.desc}</div>
+                      <div style={{ fontSize: '15px', fontWeight: 600, color: data.experience === e.id ? '#1D9E75' : theme.text }}>{e.label}</div>
+                      <div style={{ fontSize: '12px', color: data.experience === e.id ? '#1D9E75' : theme.textSecondary, marginTop: '1px' }}>{e.desc}</div>
                     </div>
                   </div>
                 </div>
@@ -235,7 +226,6 @@ export default function OnboardingScreen({ onComplete }: Props) {
           </>
         )}
 
-        {/* Step 3 — Schedule */}
         {step === 3 && (
           <>
             <div style={stepTitleStyle}>Training schedule</div>
@@ -252,7 +242,7 @@ export default function OnboardingScreen({ onComplete }: Props) {
                 onChange={e => setData(prev => ({ ...prev, trainingDays: Number(e.target.value) }))}
                 style={{ width: '100%', accentColor: '#1D9E75' }}
               />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: theme.textSecondary, marginTop: '2px' }}>
                 <span>2 days</span><span>6 days</span>
               </div>
             </div>
@@ -268,14 +258,14 @@ export default function OnboardingScreen({ onComplete }: Props) {
                 onChange={e => setData(prev => ({ ...prev, sessionLength: Number(e.target.value) }))}
                 style={{ width: '100%', accentColor: '#1D9E75' }}
               />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: theme.textSecondary, marginTop: '2px' }}>
                 <span>30 min</span><span>120 min</span>
               </div>
             </div>
 
             <div style={{ marginTop: '24px' }}>
-              <label style={{ fontSize: '13px', fontWeight: 500, color: darkMode ? '#888888' : '#374151', display: 'block', marginBottom: '8px' }}>
-                Any injuries or areas to avoid? <span style={{ fontWeight: 400, color: '#9ca3af' }}>(optional)</span>
+              <label style={{ fontSize: '13px', fontWeight: 500, color: theme.textSecondary, display: 'block', marginBottom: '8px' }}>
+                Any injuries or areas to avoid? <span style={{ fontWeight: 400, color: theme.textTertiary }}>(optional)</span>
               </label>
               <textarea
                 placeholder="e.g. Left knee pain, avoid heavy squats"
@@ -284,9 +274,9 @@ export default function OnboardingScreen({ onComplete }: Props) {
                 rows={3}
                 style={{
                   width: '100%', padding: '10px 12px',
-                  borderRadius: '8px', border: `0.5px solid ${darkMode ? '#2a2a2a' : '#e5e7eb'}`,
-                  fontSize: '13px', color: darkMode ? '#f9fafb' : '#111827', resize: 'none',
-                  background: darkMode ? '#141414' : '#fff',
+                  borderRadius: '8px', border: `0.5px solid ${theme.border}`,
+                  fontSize: '13px', color: theme.text, resize: 'none',
+                  background: theme.inputBackground,
                   fontFamily: 'system-ui, sans-serif', boxSizing: 'border-box',
                 }}
               />
@@ -294,7 +284,6 @@ export default function OnboardingScreen({ onComplete }: Props) {
           </>
         )}
 
-        {/* Step 4 — Equipment */}
         {step === 4 && (
           <>
             <div style={stepTitleStyle}>What equipment do you have?</div>
@@ -311,21 +300,13 @@ export default function OnboardingScreen({ onComplete }: Props) {
                       display: 'flex', alignItems: 'center',
                       borderRadius: '22px', cursor: 'pointer',
                       transition: 'all 0.15s',
-                      background: selected ? '#1D9E75' : (darkMode ? '#1c1c1e' : '#f3f4f6'),
-                      border: selected ? 'none' : (darkMode ? '0.5px solid #2a2a2a' : '0.5px solid #e5e7eb'),
+                      background: selected ? '#1D9E75' : theme.card,
+                      border: selected ? 'none' : `0.5px solid ${theme.border}`,
                       fontSize: '14px', fontWeight: 500,
-                      color: selected ? '#fff' : (darkMode ? '#666' : '#374151'),
+                      color: selected ? '#fff' : theme.textSecondary,
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ display: 'none' }}>
-                        {selected && <span style={{ color: '#fff', fontSize: '11px', lineHeight: 1 }}>✓</span>}
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '14px', fontWeight: 500 }}>{eq.label}</div>
-                        <div style={{ display: 'none' }}>{eq.desc}</div>
-                      </div>
-                    </div>
+                    <div style={{ fontSize: '14px', fontWeight: 500 }}>{eq.label}</div>
                   </div>
                 )
               })}
@@ -333,22 +314,20 @@ export default function OnboardingScreen({ onComplete }: Props) {
           </>
         )}
 
-        {/* Error */}
         {error && (
-          <div style={{ marginTop: '16px', background: '#fef2f2', borderRadius: '8px', padding: '12px', fontSize: '13px', color: '#991b1b' }}>
+          <div style={{ marginTop: '16px', background: theme.dangerMuted, borderRadius: '8px', padding: '12px', fontSize: '13px', color: theme.danger }}>
             {error}
           </div>
         )}
 
-        {/* Navigation */}
         <div style={{ display: 'flex', gap: '10px', marginTop: '24px' }}>
           {step > 1 && (
             <button
               onClick={() => setStep(s => s - 1)}
               style={{
                 flex: 1, padding: '11px', borderRadius: '10px',
-                border: `0.5px solid ${darkMode ? '#2a2a2a' : '#e5e7eb'}`, background: darkMode ? '#1c1c1e' : '#fff',
-                fontSize: '14px', color: darkMode ? '#666666' : '#374151', cursor: 'pointer',
+                border: `0.5px solid ${theme.border}`, background: theme.card,
+                fontSize: '14px', color: theme.textSecondary, cursor: 'pointer',
               }}
             >
               Back

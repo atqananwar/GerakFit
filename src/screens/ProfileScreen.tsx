@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../theme/ThemeContext'
 import { signOut } from '../lib/auth'
 
 interface Props {
@@ -53,17 +54,18 @@ type Section =
 function SettingsScreen({ title, onBack, children }: {
   title: string; onBack: () => void; children: React.ReactNode
 }) {
+  const { theme } = useTheme()
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{
-        padding: '14px 20px', borderBottom: '0.5px solid #1a1a1a',
-        display: 'flex', alignItems: 'center', background: '#0d0d0d', flexShrink: 0,
+        padding: '14px 20px', borderBottom: `0.5px solid ${theme.borderSubtle}`,
+        display: 'flex', alignItems: 'center', background: theme.background, flexShrink: 0,
       }}>
         <button onClick={onBack} style={{
           background: 'none', border: 'none', color: '#1D9E75',
           fontSize: 15, cursor: 'pointer', padding: '0 12px 0 0', fontWeight: 500,
         }}>← Back</button>
-        <div style={{ flex: 1, textAlign: 'center', fontSize: 17, fontWeight: 700, color: '#fff', marginRight: 60 }}>
+        <div style={{ flex: 1, textAlign: 'center', fontSize: 17, fontWeight: 700, color: theme.text, marginRight: 60 }}>
           {title}
         </div>
       </div>
@@ -73,13 +75,14 @@ function SettingsScreen({ title, onBack, children }: {
 }
 
 function SettingsGroup({ label, children }: { label: string; children: React.ReactNode }) {
+  const { theme } = useTheme()
   return (
     <div style={{ marginBottom: 8 }}>
       <div style={{
-        fontSize: 12, color: '#555', textTransform: 'uppercase',
-        letterSpacing: 1, padding: '16px 20px 8px', background: '#0d0d0d',
+        fontSize: 12, color: theme.textSecondary, textTransform: 'uppercase',
+        letterSpacing: 1, padding: '16px 20px 8px', background: theme.background,
       }}>{label}</div>
-      <div style={{ background: '#1c1c1e' }}>{children}</div>
+      <div style={{ background: theme.card }}>{children}</div>
     </div>
   )
 }
@@ -88,16 +91,17 @@ function SettingsRow({ icon, label, value, onPress, danger, last }: {
   icon: string; label: string; value?: string
   onPress: () => void; danger?: boolean; last?: boolean
 }) {
+  const { theme } = useTheme()
   return (
     <div onClick={onPress} style={{
       display: 'flex', alignItems: 'center', gap: 12,
       padding: '14px 20px', cursor: 'pointer',
-      borderBottom: last ? 'none' : '0.5px solid #1a1a1a',
+      borderBottom: last ? 'none' : `0.5px solid ${theme.borderSubtle}`,
     }}>
       <span style={{ fontSize: 18, width: 28, textAlign: 'center' }}>{icon}</span>
-      <span style={{ flex: 1, fontSize: 15, color: danger ? '#ef4444' : '#fff' }}>{label}</span>
-      {value && <span style={{ fontSize: 13, color: '#555', marginRight: 4 }}>{value}</span>}
-      {!danger && <span style={{ fontSize: 18, color: '#444' }}>›</span>}
+      <span style={{ flex: 1, fontSize: 15, color: danger ? '#ef4444' : theme.text }}>{label}</span>
+      {value && <span style={{ fontSize: 13, color: theme.textSecondary, marginRight: 4 }}>{value}</span>}
+      {!danger && <span style={{ fontSize: 18, color: theme.textTertiary }}>›</span>}
     </div>
   )
 }
@@ -106,16 +110,17 @@ function ToggleRow({ icon, label, value, onChange, last }: {
   icon: string; label: string; value: boolean
   onChange: (v: boolean) => void; last?: boolean
 }) {
+  const { theme } = useTheme()
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 12,
-      padding: '14px 20px', borderBottom: last ? 'none' : '0.5px solid #1a1a1a',
+      padding: '14px 20px', borderBottom: last ? 'none' : `0.5px solid ${theme.borderSubtle}`,
     }}>
       <span style={{ fontSize: 18, width: 28, textAlign: 'center' }}>{icon}</span>
-      <span style={{ flex: 1, fontSize: 15, color: '#fff' }}>{label}</span>
+      <span style={{ flex: 1, fontSize: 15, color: theme.text }}>{label}</span>
       <div onClick={() => onChange(!value)} style={{
         width: 44, height: 26, borderRadius: 13, cursor: 'pointer',
-        background: value ? '#1D9E75' : '#333', position: 'relative', transition: 'background 0.2s',
+        background: value ? '#1D9E75' : theme.border, position: 'relative', transition: 'background 0.2s',
       }}>
         <div style={{
           position: 'absolute', top: 3, left: value ? 21 : 3,
@@ -130,13 +135,9 @@ function ToggleRow({ icon, label, value, onChange, last }: {
 // ─── ProfileScreen ────────────────────────────────────────────────────────────
 
 export default function ProfileScreen({ onNavigate, activeTab }: Props) {
-  const [currentThemeLabel, setCurrentThemeLabel] = useState(() =>
-    localStorage.getItem('gerakfit-theme-label') || 'Dark'
-  )
-  const darkMode = currentThemeLabel === 'Dark' ||
-    (currentThemeLabel === 'System Default' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  const { theme, mode, setMode } = useTheme()
 
-  useEffect(() => { document.body.style.background = darkMode ? '#0d0d0d' : '#f9fafb' }, [darkMode])
+  const currentThemeLabel = mode === 'dark' ? 'Dark' : mode === 'light' ? 'Light' : 'System Default'
 
   const { user } = useAuth()
   const [section, setSection] = useState<Section>('main')
@@ -153,7 +154,6 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
   const [stats, setStats] = useState({ totalSessions: 0, streakDays: 0, totalPRs: 0 })
   const fileRef = useRef<HTMLInputElement>(null)
 
-  // Settings states
   const [notifSettings, setNotifSettings] = useState({
     workoutReminders: false, dailyChallenge: true, achievements: true, weeklySummary: true,
   })
@@ -245,15 +245,10 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
   }
 
   function applyTheme(label: string) {
-    setCurrentThemeLabel(label)
-    localStorage.setItem('gerakfit-theme-label', label)
-    if (label === 'Dark') localStorage.setItem('gerakfit-dark', 'true')
-    else if (label === 'Light') localStorage.setItem('gerakfit-dark', 'false')
-    else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      localStorage.setItem('gerakfit-dark', prefersDark ? 'true' : 'false')
+    const modeMap: Record<string, 'dark' | 'light' | 'system'> = {
+      'Dark': 'dark', 'Light': 'light', 'System Default': 'system',
     }
-    window.location.reload()
+    setMode(modeMap[label] ?? 'dark')
   }
 
   function showSaved() { setSaveMsg('Saved!'); setTimeout(() => setSaveMsg(''), 2000) }
@@ -268,24 +263,23 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
   const initials = (profile.full_name || user?.email || 'U').charAt(0).toUpperCase()
   const isSettingsSection = section.startsWith('settings')
 
-  // Styles for full-screen edit sections (no bottom nav)
-  const P: React.CSSProperties = { minHeight: '100vh', background: darkMode ? '#0d0d0d' : '#f9fafb', fontFamily: 'system-ui,sans-serif', paddingBottom: '32px' }
-  const H: React.CSSProperties = { background: darkMode ? '#1c1c1e' : '#fff', borderBottom: darkMode ? '0.5px solid #2a2a2a' : '0.5px solid #e5e7eb', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }
+  const P: React.CSSProperties = { minHeight: '100vh', background: theme.background, fontFamily: 'system-ui,sans-serif', paddingBottom: '32px' }
+  const H: React.CSSProperties = { background: theme.card, borderBottom: `0.5px solid ${theme.border}`, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }
   const B: React.CSSProperties = { padding: '20px 16px', maxWidth: '500px', margin: '0 auto' }
-  const CARD: React.CSSProperties = { background: darkMode ? '#1c1c1e' : '#fff', border: darkMode ? '0.5px solid #2a2a2a' : '0.5px solid #e5e7eb', borderRadius: '14px', padding: '16px 18px', marginBottom: '14px' }
-  const CT: React.CSSProperties = { fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#888888', margin: 0 }
+  const CARD: React.CSSProperties = { background: theme.card, border: `0.5px solid ${theme.border}`, borderRadius: '14px', padding: '16px 18px', marginBottom: '14px' }
+  const CT: React.CSSProperties = { fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: theme.textSecondary, margin: 0 }
   const FG: React.CSSProperties = { marginBottom: '18px' }
-  const LBL: React.CSSProperties = { display: 'block', fontSize: '13px', fontWeight: 500, color: darkMode ? '#d1d5db' : '#2a2a2a', marginBottom: '8px' }
-  const INP: React.CSSProperties = { width: '100%', padding: '10px 12px', borderRadius: '8px', border: `0.5px solid ${darkMode ? '#2a2a2a' : '#e5e7eb'}`, fontSize: '14px', color: darkMode ? '#f9fafb' : '#000000', background: darkMode ? '#141414' : '#fff', boxSizing: 'border-box', fontFamily: 'system-ui,sans-serif' }
+  const LBL: React.CSSProperties = { display: 'block', fontSize: '13px', fontWeight: 500, color: theme.text, marginBottom: '8px' }
+  const INP: React.CSSProperties = { width: '100%', padding: '10px 12px', borderRadius: '8px', border: `0.5px solid ${theme.border}`, fontSize: '14px', color: theme.text, background: theme.inputBackground, boxSizing: 'border-box', fontFamily: 'system-ui,sans-serif' }
   const OPT: React.CSSProperties = { padding: '11px 14px', borderRadius: '10px', border: '1.5px solid #e5e7eb', cursor: 'pointer' }
   const SBTN: React.CSSProperties = { width: '100%', padding: '12px', borderRadius: '10px', background: '#1D9E75', border: 'none', color: '#fff', fontSize: '14px', fontWeight: 600, cursor: 'pointer', marginTop: '8px' }
   const EBTN: React.CSSProperties = { fontSize: '12px', color: '#1D9E75', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 500 }
-  const BTN: React.CSSProperties = { background: 'none', border: 'none', fontSize: '14px', color: '#666', cursor: 'pointer', padding: '0' }
+  const BTN: React.CSSProperties = { background: 'none', border: 'none', fontSize: '14px', color: theme.textSecondary, cursor: 'pointer', padding: '0' }
   const SM: React.CSSProperties = { fontSize: '12px', color: '#1D9E75', fontWeight: 500 }
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui,sans-serif' }}>
-      <div style={{ fontSize: '13px', color: '#666666' }}>Loading...</div>
+    <div style={{ minHeight: '100vh', background: theme.background, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui,sans-serif' }}>
+      <div style={{ fontSize: '13px', color: theme.textSecondary }}>Loading...</div>
     </div>
   )
 
@@ -294,16 +288,16 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
     <div style={P}>
       <div style={H}>
         <button onClick={() => setSection('main')} style={BTN}>← Back</button>
-        <div style={{ fontSize: '18px', fontWeight: 800, color: darkMode ? '#f9fafb' : '#111827', flex: 1 }}>Edit profile</div>
+        <div style={{ fontSize: '18px', fontWeight: 800, color: theme.text, flex: 1 }}>Edit profile</div>
         {saveMsg && <div style={SM}>{saveMsg}</div>}
       </div>
       <div style={B}>
         <div style={FG}><label style={LBL}>Full name</label><input value={profile.full_name} onChange={e => setProfile(p => ({ ...p, full_name: e.target.value }))} style={INP} placeholder="Your name" /></div>
-        <div style={FG}><label style={LBL}>Goal</label><div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{GOAL_OPTIONS.map(g => <div key={g.id} onClick={() => setProfile(p => ({ ...p, goal: g.id }))} style={{ ...OPT, borderColor: profile.goal === g.id ? '#1D9E75' : '#e5e7eb', background: profile.goal === g.id ? '#E1F5EE' : '#fff' }}><div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><div style={{ width: '16px', height: '16px', borderRadius: '50%', border: `2px solid ${profile.goal === g.id ? '#1D9E75' : '#d1d5db'}`, background: profile.goal === g.id ? '#1D9E75' : 'transparent', flexShrink: 0 }} /><span style={{ fontSize: '14px', color: profile.goal === g.id ? '#085041' : '#000000' }}>{g.label}</span></div></div>)}</div></div>
-        <div style={FG}><label style={LBL}>Experience</label><div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{EXPERIENCE_OPTIONS.map(e => <div key={e.id} onClick={() => setProfile(p => ({ ...p, experience_level: e.id }))} style={{ ...OPT, borderColor: profile.experience_level === e.id ? '#1D9E75' : '#e5e7eb', background: profile.experience_level === e.id ? '#E1F5EE' : '#fff' }}><div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><div style={{ width: '16px', height: '16px', borderRadius: '50%', border: `2px solid ${profile.experience_level === e.id ? '#1D9E75' : '#d1d5db'}`, background: profile.experience_level === e.id ? '#1D9E75' : 'transparent', flexShrink: 0 }} /><span style={{ fontSize: '14px', color: profile.experience_level === e.id ? '#085041' : '#000000' }}>{e.label}</span></div></div>)}</div></div>
+        <div style={FG}><label style={LBL}>Goal</label><div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{GOAL_OPTIONS.map(g => <div key={g.id} onClick={() => setProfile(p => ({ ...p, goal: g.id }))} style={{ ...OPT, borderColor: profile.goal === g.id ? '#1D9E75' : theme.border, background: profile.goal === g.id ? theme.primaryMuted : theme.card }}><div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><div style={{ width: '16px', height: '16px', borderRadius: '50%', border: `2px solid ${profile.goal === g.id ? '#1D9E75' : theme.border}`, background: profile.goal === g.id ? '#1D9E75' : 'transparent', flexShrink: 0 }} /><span style={{ fontSize: '14px', color: profile.goal === g.id ? '#1D9E75' : theme.text }}>{g.label}</span></div></div>)}</div></div>
+        <div style={FG}><label style={LBL}>Experience</label><div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>{EXPERIENCE_OPTIONS.map(e => <div key={e.id} onClick={() => setProfile(p => ({ ...p, experience_level: e.id }))} style={{ ...OPT, borderColor: profile.experience_level === e.id ? '#1D9E75' : theme.border, background: profile.experience_level === e.id ? theme.primaryMuted : theme.card }}><div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><div style={{ width: '16px', height: '16px', borderRadius: '50%', border: `2px solid ${profile.experience_level === e.id ? '#1D9E75' : theme.border}`, background: profile.experience_level === e.id ? '#1D9E75' : 'transparent', flexShrink: 0 }} /><span style={{ fontSize: '14px', color: profile.experience_level === e.id ? '#1D9E75' : theme.text }}>{e.label}</span></div></div>)}</div></div>
         <div style={FG}><label style={LBL}>Days per week — <strong>{profile.training_days_per_week}</strong></label><input type="range" min="2" max="6" step="1" value={profile.training_days_per_week} onChange={e => setProfile(p => ({ ...p, training_days_per_week: Number(e.target.value) }))} style={{ width: '100%', accentColor: '#1D9E75' }} /></div>
         <div style={FG}><label style={LBL}>Session length — <strong>{profile.session_length_minutes} min</strong></label><input type="range" min="30" max="120" step="15" value={profile.session_length_minutes} onChange={e => setProfile(p => ({ ...p, session_length_minutes: Number(e.target.value) }))} style={{ width: '100%', accentColor: '#1D9E75' }} /></div>
-        <div style={FG}><label style={LBL}>Injury notes <span style={{ fontWeight: 400, color: darkMode ? '#666666' : '#888888' }}>(optional)</span></label><textarea value={profile.injury_notes} onChange={e => setProfile(p => ({ ...p, injury_notes: e.target.value }))} rows={3} style={{ ...INP, resize: 'none' }} placeholder="e.g. Left knee pain" /></div>
+        <div style={FG}><label style={LBL}>Injury notes <span style={{ fontWeight: 400, color: theme.textSecondary }}>(optional)</span></label><textarea value={profile.injury_notes} onChange={e => setProfile(p => ({ ...p, injury_notes: e.target.value }))} rows={3} style={{ ...INP, resize: 'none' }} placeholder="e.g. Left knee pain" /></div>
         <button onClick={saveProfile} disabled={saving} style={SBTN}>{saving ? 'Saving...' : 'Save changes'}</button>
       </div>
     </div>
@@ -314,33 +308,33 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
     <div style={P}>
       <div style={H}>
         <button onClick={() => setSection('main')} style={BTN}>← Back</button>
-        <div style={{ fontSize: '18px', fontWeight: 800, color: darkMode ? '#f9fafb' : '#111827', flex: 1 }}>Equipment ({totalSel} selected)</div>
+        <div style={{ fontSize: '18px', fontWeight: 800, color: theme.text, flex: 1 }}>Equipment ({totalSel} selected)</div>
         {saveMsg && <div style={SM}>{saveMsg}</div>}
       </div>
       <div style={B}>
-        <div style={{ fontSize: '13px', color: darkMode ? '#888888' : '#666666', marginBottom: '16px' }}>Tap category to expand. Select equipment available at your gym.</div>
+        <div style={{ fontSize: '13px', color: theme.textSecondary, marginBottom: '16px' }}>Tap category to expand. Select equipment available at your gym.</div>
         {equipCats.map((cat, ci) => {
           const expanded = expandedCats.has(cat.category)
           const selCount = cat.items.filter(i => i.selected).length
           const allSel = cat.items.every(i => i.selected)
           return (
-            <div key={cat.category} style={{ background: darkMode ? '#1c1c1e' : '#fff', border: darkMode ? '0.5px solid #2a2a2a' : '0.5px solid #e5e7eb', borderRadius: '12px', marginBottom: '8px', overflow: 'hidden' }}>
+            <div key={cat.category} style={{ background: theme.card, border: `0.5px solid ${theme.border}`, borderRadius: '12px', marginBottom: '8px', overflow: 'hidden' }}>
               <div onClick={() => toggleCat(cat.category)} style={{ padding: '12px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 500, color: darkMode ? '#f9fafb' : '#111827' }}>{cat.category}</div>
-                  {selCount > 0 && <span style={{ fontSize: '11px', background: '#E1F5EE', color: '#085041', padding: '2px 8px', borderRadius: '10px', fontWeight: 500 }}>{selCount}</span>}
+                  <div style={{ fontSize: '14px', fontWeight: 500, color: theme.text }}>{cat.category}</div>
+                  {selCount > 0 && <span style={{ fontSize: '11px', background: theme.primaryMuted, color: '#1D9E75', padding: '2px 8px', borderRadius: '10px', fontWeight: 500 }}>{selCount}</span>}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <button onClick={e => { e.stopPropagation(); toggleAll(ci) }} style={{ fontSize: '11px', color: allSel ? '#ef4444' : '#1D9E75', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 500 }}>{allSel ? 'Clear' : 'All'}</button>
-                  <span style={{ color: darkMode ? '#666666' : '#888888', fontSize: '12px' }}>{expanded ? '▲' : '▼'}</span>
+                  <span style={{ color: theme.textSecondary, fontSize: '12px' }}>{expanded ? '▲' : '▼'}</span>
                 </div>
               </div>
-              {expanded && <div style={{ borderTop: '0.5px solid #f3f4f6', padding: '8px 14px 12px' }}>
+              {expanded && <div style={{ borderTop: `0.5px solid ${theme.borderSubtle}`, padding: '8px 14px 12px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                   {cat.items.map((item, ii) => (
-                    <div key={item.name} onClick={() => toggleItem(ci, ii)} style={{ padding: '8px 10px', borderRadius: '8px', cursor: 'pointer', border: `1.5px solid ${item.selected ? '#1D9E75' : '#e5e7eb'}`, background: item.selected ? '#E1F5EE' : '#f9fafb', display: 'flex', alignItems: 'center', gap: '7px' }}>
-                      <div style={{ width: '14px', height: '14px', borderRadius: '3px', border: `2px solid ${item.selected ? '#1D9E75' : '#d1d5db'}`, background: item.selected ? '#1D9E75' : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.selected && <span style={{ color: '#fff', fontSize: '9px' }}>✓</span>}</div>
-                      <span style={{ fontSize: '12px', color: item.selected ? '#085041' : '#2a2a2a', lineHeight: 1.3 }}>{item.name}</span>
+                    <div key={item.name} onClick={() => toggleItem(ci, ii)} style={{ padding: '8px 10px', borderRadius: '8px', cursor: 'pointer', border: `1.5px solid ${item.selected ? '#1D9E75' : theme.border}`, background: item.selected ? theme.primaryMuted : theme.surface, display: 'flex', alignItems: 'center', gap: '7px' }}>
+                      <div style={{ width: '14px', height: '14px', borderRadius: '3px', border: `2px solid ${item.selected ? '#1D9E75' : theme.border}`, background: item.selected ? '#1D9E75' : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.selected && <span style={{ color: '#fff', fontSize: '9px' }}>✓</span>}</div>
+                      <span style={{ fontSize: '12px', color: item.selected ? '#1D9E75' : theme.text, lineHeight: 1.3 }}>{item.name}</span>
                     </div>
                   ))}
                 </div>
@@ -358,7 +352,7 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
     <div style={P}>
       <div style={H}>
         <button onClick={() => setSection('main')} style={BTN}>← Back</button>
-        <div style={{ fontSize: '18px', fontWeight: 800, color: darkMode ? '#f9fafb' : '#111827', flex: 1 }}>Body weight log</div>
+        <div style={{ fontSize: '18px', fontWeight: 800, color: theme.text, flex: 1 }}>Body weight log</div>
       </div>
       <div style={B}>
         <div style={CARD}>
@@ -371,19 +365,19 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
         </div>
         <div style={CARD}>
           <div style={CT}>History</div>
-          {bodyLogs.length === 0 ? <div style={{ textAlign: 'center', padding: '20px 0', fontSize: '13px', color: darkMode ? '#666666' : '#888888' }}>No entries yet.</div> : bodyLogs.map((log, i) => {
+          {bodyLogs.length === 0 ? <div style={{ textAlign: 'center', padding: '20px 0', fontSize: '13px', color: theme.textSecondary }}>No entries yet.</div> : bodyLogs.map((log, i) => {
             const prev = bodyLogs[i + 1]
             const diff = prev ? parseFloat((log.weight_kg - prev.weight_kg).toFixed(1)) : null
             return (
-              <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: darkMode ? '0.5px solid #2a2a2a' : '0.5px solid #f3f4f6' }}>
+              <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `0.5px solid ${theme.borderSubtle}` }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                    <span style={{ fontSize: '16px', fontWeight: 600, color: darkMode ? '#f9fafb' : '#111827' }}>{log.weight_kg} kg</span>
-                    {diff !== null && <span style={{ fontSize: '12px', color: diff < 0 ? '#1D9E75' : diff > 0 ? '#ef4444' : '#888888', fontWeight: 500 }}>{diff > 0 ? '+' : ''}{diff} kg</span>}
+                    <span style={{ fontSize: '16px', fontWeight: 600, color: theme.text }}>{log.weight_kg} kg</span>
+                    {diff !== null && <span style={{ fontSize: '12px', color: diff < 0 ? '#1D9E75' : diff > 0 ? '#ef4444' : theme.textSecondary, fontWeight: 500 }}>{diff > 0 ? '+' : ''}{diff} kg</span>}
                   </div>
-                  <div style={{ fontSize: '11px', color: darkMode ? '#666666' : '#888888', marginTop: '1px' }}>{new Date(log.log_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}{log.notes ? ` · ${log.notes}` : ''}</div>
+                  <div style={{ fontSize: '11px', color: theme.textSecondary, marginTop: '1px' }}>{new Date(log.log_date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}{log.notes ? ` · ${log.notes}` : ''}</div>
                 </div>
-                <button onClick={() => { supabase.from('body_logs').delete().eq('id', log.id); setBodyLogs(p => p.filter(l => l.id !== log.id)) }} style={{ padding: '4px 10px', borderRadius: '6px', border: '0.5px solid #fee2e2', background: darkMode ? '#1c1c1e' : '#fff', color: '#ef4444', fontSize: '12px', cursor: 'pointer' }}>Delete</button>
+                <button onClick={() => { supabase.from('body_logs').delete().eq('id', log.id); setBodyLogs(p => p.filter(l => l.id !== log.id)) }} style={{ padding: '4px 10px', borderRadius: '6px', border: `0.5px solid ${theme.danger}`, background: theme.card, color: '#ef4444', fontSize: '12px', cursor: 'pointer' }}>Delete</button>
               </div>
             )
           })}
@@ -395,29 +389,29 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
   // ─── Main layout (main + all settings sections share sticky header + bottom nav) ──
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#0d0d0d', fontFamily: 'system-ui, sans-serif', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: theme.background, fontFamily: 'system-ui, sans-serif', overflow: 'hidden' }}>
 
       {/* Sticky header — always visible */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#0d0d0d', borderBottom: '0.5px solid #1a1a1a', padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-        <div style={{ fontSize: '22px', fontWeight: 800, color: '#fff' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 100, background: theme.background, borderBottom: `0.5px solid ${theme.borderSubtle}`, padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{ fontSize: '22px', fontWeight: 800, color: theme.text }}>
           {profile.full_name || user?.email?.split('@')[0]}
         </div>
         <div style={{ display: 'flex', gap: '4px' }}>
-          <button onClick={() => setSection('edit_profile')} style={{ background: 'none', border: 'none', color: '#fff', padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <button onClick={() => setSection('edit_profile')} style={{ background: 'none', border: 'none', color: theme.text, padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
             </svg>
           </button>
           <button onClick={() => {
             if (navigator.share) navigator.share({ title: 'GerakFit', text: 'Check out my GerakFit profile!', url: window.location.href })
-          }} style={{ background: 'none', border: 'none', color: '#fff', padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          }} style={{ background: 'none', border: 'none', color: theme.text, padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
               <polyline points="16 6 12 2 8 6"/>
               <line x1="12" y1="2" x2="12" y2="15"/>
             </svg>
           </button>
-          <button onClick={() => setSection('settings')} style={{ background: 'none', border: 'none', color: '#fff', padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <button onClick={() => setSection('settings')} style={{ background: 'none', border: 'none', color: theme.text, padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="3"/>
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -436,9 +430,9 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
               {profile.avatar_url ? (
                 <img src={profile.avatar_url} alt="avatar" style={{ width: '72px', height: '72px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #1D9E75' }} />
               ) : (
-                <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: '#E1F5EE', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 700, color: '#085041', border: '2px solid #1D9E75' }}>{initials}</div>
+                <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: theme.primaryMuted, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 700, color: '#1D9E75', border: '2px solid #1D9E75' }}>{initials}</div>
               )}
-              <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ position: 'absolute', bottom: 0, right: 0, width: '22px', height: '22px', borderRadius: '50%', background: '#1D9E75', border: '2px solid #0d0d0d', color: '#fff', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{uploading ? '…' : '+'}</button>
+              <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ position: 'absolute', bottom: 0, right: 0, width: '22px', height: '22px', borderRadius: '50%', background: '#1D9E75', border: `2px solid ${theme.background}`, color: '#fff', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{uploading ? '…' : '+'}</button>
               <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { if (e.target.files?.[0]) uploadAvatar(e.target.files[0]) }} />
             </div>
             <div style={{ display: 'flex', gap: '24px', flex: 1 }}>
@@ -448,30 +442,30 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
                 { label: 'PRs', value: stats.totalPRs },
               ].map(s => (
                 <div key={s.label} style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#fff' }}>{s.value}</div>
-                  <div style={{ fontSize: '11px', color: '#555', marginTop: '2px' }}>{s.label}</div>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: theme.text }}>{s.value}</div>
+                  <div style={{ fontSize: '11px', color: theme.textSecondary, marginTop: '2px' }}>{s.label}</div>
                 </div>
               ))}
             </div>
           </div>
 
           <div style={{ marginBottom: '20px' }}>
-            <div style={{ fontSize: '15px', fontWeight: 600, color: '#fff' }}>{profile.full_name || user?.email}</div>
-            <div style={{ fontSize: '12px', color: '#555', marginTop: '2px' }}>{user?.email}</div>
+            <div style={{ fontSize: '15px', fontWeight: 600, color: theme.text }}>{profile.full_name || user?.email}</div>
+            <div style={{ fontSize: '12px', color: theme.textSecondary, marginTop: '2px' }}>{user?.email}</div>
             {saveMsg && <div style={{ fontSize: '12px', color: '#1D9E75', fontWeight: 500, marginTop: '4px' }}>{saveMsg}</div>}
           </div>
 
           {latestWeight && (
-            <div style={{ background: '#1c1c1e', border: '0.5px solid #2a2a2a', borderRadius: '12px', padding: '12px 16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ background: theme.card, border: `0.5px solid ${theme.border}`, borderRadius: '12px', padding: '12px 16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontSize: '10px', color: '#666', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Current weight</div>
+                <div style={{ fontSize: '10px', color: theme.textSecondary, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Current weight</div>
                 <div style={{ fontSize: '28px', fontWeight: 800, color: '#1D9E75', marginTop: '2px' }}>{latestWeight} kg</div>
               </div>
               <button onClick={() => setSection('body_log')} style={{ fontSize: '12px', color: '#1D9E75', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 500 }}>Update →</button>
             </div>
           )}
 
-          <div style={{ fontSize: '11px', color: '#555', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px', marginTop: '20px' }}>Dashboard</div>
+          <div style={{ fontSize: '11px', color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px', marginTop: '20px' }}>Dashboard</div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '20px' }}>
             {[
               { icon: '📊', label: 'Statistics', action: () => onNavigate('analytics') },
@@ -479,22 +473,22 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
               { icon: '⚖️', label: 'Body Log', action: () => setSection('body_log') },
               { icon: '🔧', label: 'Equipment', action: () => setSection('edit_equipment') },
             ].map(item => (
-              <div key={item.label} onClick={item.action} style={{ background: '#1c1c1e', border: '0.5px solid #2a2a2a', borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+              <div key={item.label} onClick={item.action} style={{ background: theme.card, border: `0.5px solid ${theme.border}`, borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
                 <span style={{ fontSize: '20px' }}>{item.icon}</span>
-                <span style={{ fontSize: '14px', fontWeight: 600, color: '#fff' }}>{item.label}</span>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: theme.text }}>{item.label}</span>
               </div>
             ))}
           </div>
 
-          <div style={{ background: '#1c1c1e', border: '0.5px solid #2a2a2a', borderRadius: '12px', padding: '16px 18px', marginBottom: '14px' }}>
+          <div style={{ background: theme.card, border: `0.5px solid ${theme.border}`, borderRadius: '12px', padding: '16px 18px', marginBottom: '14px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <div style={CT}>Training profile</div>
               <button onClick={() => setSection('edit_profile')} style={EBTN}>Edit</button>
             </div>
             {[['Goal', goalLabel], ['Experience', expLabel], ['Training days', `${profile.training_days_per_week} days/week`], ['Session length', `${profile.session_length_minutes} min`], ['Injuries', profile.injury_notes || 'None noted']].map(([l, v]) => (
-              <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '0.5px solid #2a2a2a' }}>
-                <span style={{ fontSize: '13px', color: '#666666' }}>{l}</span>
-                <span style={{ fontSize: '13px', fontWeight: 500, color: '#ffffff', textAlign: 'right', maxWidth: '55%' }}>{v}</span>
+              <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: `0.5px solid ${theme.borderSubtle}` }}>
+                <span style={{ fontSize: '13px', color: theme.textSecondary }}>{l}</span>
+                <span style={{ fontSize: '13px', fontWeight: 500, color: theme.text, textAlign: 'right', maxWidth: '55%' }}>{v}</span>
               </div>
             ))}
           </div>
@@ -538,13 +532,13 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
 
             {showLogoutConfirm && (
               <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'flex-end', zIndex: 300 }}>
-                <div style={{ background: '#1c1c1e', borderRadius: '20px 20px 0 0', padding: '24px 20px 40px', width: '100%' }}>
+                <div style={{ background: theme.card, borderRadius: '20px 20px 0 0', padding: '24px 20px 40px', width: '100%' }}>
                   <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                    <div style={{ fontSize: 17, fontWeight: 700, color: '#fff', marginBottom: 6 }}>Log Out</div>
-                    <div style={{ fontSize: 14, color: '#888' }}>Are you sure you want to log out?</div>
+                    <div style={{ fontSize: 17, fontWeight: 700, color: theme.text, marginBottom: 6 }}>Log Out</div>
+                    <div style={{ fontSize: 14, color: theme.textSecondary }}>Are you sure you want to log out?</div>
                   </div>
                   <button onClick={() => signOut()} style={{ width: '100%', padding: 16, borderRadius: 12, marginBottom: 10, background: '#ef4444', border: 'none', color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer' }}>Log Out</button>
-                  <button onClick={() => setShowLogoutConfirm(false)} style={{ width: '100%', padding: 16, borderRadius: 12, background: '#2a2a2a', border: 'none', color: '#fff', fontSize: 16, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+                  <button onClick={() => setShowLogoutConfirm(false)} style={{ width: '100%', padding: 16, borderRadius: 12, background: theme.border, border: 'none', color: theme.text, fontSize: 16, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
                 </div>
               </div>
             )}
@@ -569,13 +563,13 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
 
             {showDeleteConfirm && (
               <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 20 }}>
-                <div style={{ background: '#1c1c1e', borderRadius: 16, padding: 24, width: '100%', maxWidth: 340 }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: '#fff', marginBottom: 8, textAlign: 'center' }}>Delete Account</div>
-                  <div style={{ fontSize: 14, color: '#888', textAlign: 'center', marginBottom: 20, lineHeight: 1.5 }}>
+                <div style={{ background: theme.card, borderRadius: 16, padding: 24, width: '100%', maxWidth: 340 }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: theme.text, marginBottom: 8, textAlign: 'center' }}>Delete Account</div>
+                  <div style={{ fontSize: 14, color: theme.textSecondary, textAlign: 'center', marginBottom: 20, lineHeight: 1.5 }}>
                     This action is permanent and cannot be undone. All your data will be deleted.
                   </div>
                   <button onClick={() => signOut()} style={{ width: '100%', padding: 14, borderRadius: 10, marginBottom: 8, background: '#ef4444', border: 'none', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Yes, Delete My Account</button>
-                  <button onClick={() => setShowDeleteConfirm(false)} style={{ width: '100%', padding: 14, borderRadius: 10, background: '#2a2a2a', border: 'none', color: '#fff', fontSize: 15, cursor: 'pointer' }}>Cancel</button>
+                  <button onClick={() => setShowDeleteConfirm(false)} style={{ width: '100%', padding: 14, borderRadius: 10, background: theme.border, border: 'none', color: theme.text, fontSize: 15, cursor: 'pointer' }}>Cancel</button>
                 </div>
               </div>
             )}
@@ -591,11 +585,11 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
               { label: 'Body Measurements', key: 'measure', options: ['cm', 'in'], value: measureUnit, onChange: (v: string) => { setMeasureUnit(v); localStorage.setItem('gerakfit-measure', v) } },
             ].map(group => (
               <div key={group.key} style={{ marginBottom: 8 }}>
-                <div style={{ fontSize: 12, color: '#555', textTransform: 'uppercase', letterSpacing: 1, padding: '16px 20px 8px' }}>{group.label}</div>
-                <div style={{ background: '#1c1c1e' }}>
+                <div style={{ fontSize: 12, color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: 1, padding: '16px 20px 8px' }}>{group.label}</div>
+                <div style={{ background: theme.card }}>
                   {group.options.map((opt, i) => (
-                    <div key={opt} onClick={() => group.onChange(opt)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', cursor: 'pointer', borderBottom: i < group.options.length - 1 ? '0.5px solid #1a1a1a' : 'none' }}>
-                      <span style={{ fontSize: 15, color: '#fff' }}>{opt}</span>
+                    <div key={opt} onClick={() => group.onChange(opt)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', cursor: 'pointer', borderBottom: i < group.options.length - 1 ? `0.5px solid ${theme.borderSubtle}` : 'none' }}>
+                      <span style={{ fontSize: 15, color: theme.text }}>{opt}</span>
                       {group.value === opt && <span style={{ color: '#1D9E75', fontSize: 18, fontWeight: 700 }}>✓</span>}
                     </div>
                   ))}
@@ -608,19 +602,19 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
         {/* ── Theme ─────────────────────────────────────────────── */}
         {section === 'settings_theme' && (
           <SettingsScreen title="Theme" onBack={() => setSection('settings')}>
-            <div style={{ fontSize: 12, color: '#555', textTransform: 'uppercase', letterSpacing: 1, padding: '16px 20px 8px' }}>Select Theme</div>
-            <div style={{ background: '#1c1c1e' }}>
+            <div style={{ fontSize: 12, color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: 1, padding: '16px 20px 8px' }}>Select Theme</div>
+            <div style={{ background: theme.card }}>
               {['System Default', 'Dark', 'Light'].map((t, i) => (
-                <div key={t} onClick={() => applyTheme(t)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', cursor: 'pointer', borderBottom: i < 2 ? '0.5px solid #1a1a1a' : 'none' }}>
+                <div key={t} onClick={() => applyTheme(t)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', cursor: 'pointer', borderBottom: i < 2 ? `0.5px solid ${theme.borderSubtle}` : 'none' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <span style={{ fontSize: 18 }}>{t === 'Dark' ? '🌙' : t === 'Light' ? '☀️' : '📱'}</span>
-                    <span style={{ fontSize: 15, color: '#fff' }}>{t}</span>
+                    <span style={{ fontSize: 15, color: theme.text }}>{t}</span>
                   </div>
                   {currentThemeLabel === t && <span style={{ color: '#1D9E75', fontSize: 18, fontWeight: 700 }}>✓</span>}
                 </div>
               ))}
             </div>
-            <div style={{ fontSize: 12, color: '#555', padding: '12px 20px', lineHeight: 1.5 }}>
+            <div style={{ fontSize: 12, color: theme.textSecondary, padding: '12px 20px', lineHeight: 1.5 }}>
               System Default follows your device appearance setting automatically.
             </div>
           </SettingsScreen>
@@ -629,8 +623,8 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
         {/* ── Notifications ─────────────────────────────────────── */}
         {section === 'settings_notifications' && (
           <SettingsScreen title="Notifications" onBack={() => setSection('settings')}>
-            <div style={{ fontSize: 12, color: '#555', textTransform: 'uppercase', letterSpacing: 1, padding: '16px 20px 8px' }}>Alerts</div>
-            <div style={{ background: '#1c1c1e' }}>
+            <div style={{ fontSize: 12, color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: 1, padding: '16px 20px 8px' }}>Alerts</div>
+            <div style={{ background: theme.card }}>
               <ToggleRow icon="🏋️" label="Workout Reminders" value={notifSettings.workoutReminders} onChange={v => setNotifSettings(p => ({ ...p, workoutReminders: v }))} />
               <ToggleRow icon="⚔️" label="Daily Challenge Alerts" value={notifSettings.dailyChallenge} onChange={v => setNotifSettings(p => ({ ...p, dailyChallenge: v }))} />
               <ToggleRow icon="🏆" label="Achievement Notifications" value={notifSettings.achievements} onChange={v => setNotifSettings(p => ({ ...p, achievements: v }))} />
@@ -642,8 +636,8 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
         {/* ── Language ──────────────────────────────────────────── */}
         {section === 'settings_language' && (
           <SettingsScreen title="Language" onBack={() => setSection('settings')}>
-            <div style={{ fontSize: 12, color: '#555', textTransform: 'uppercase', letterSpacing: 1, padding: '16px 20px 8px' }}>Select Language</div>
-            <div style={{ background: '#1c1c1e' }}>
+            <div style={{ fontSize: 12, color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: 1, padding: '16px 20px 8px' }}>Select Language</div>
+            <div style={{ background: theme.card }}>
               {[
                 { label: 'English', flag: '🇬🇧' },
                 { label: 'Bahasa Melayu', flag: '🇲🇾' },
@@ -651,10 +645,10 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
                 { label: 'Korean', flag: '🇰🇷' },
                 { label: 'Chinese', flag: '🇨🇳' },
               ].map((lang, i) => (
-                <div key={lang.label} onClick={() => { setSelectedLanguage(lang.label); localStorage.setItem('gerakfit-language', lang.label) }} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', cursor: 'pointer', borderBottom: i < 4 ? '0.5px solid #1a1a1a' : 'none' }}>
+                <div key={lang.label} onClick={() => { setSelectedLanguage(lang.label); localStorage.setItem('gerakfit-language', lang.label) }} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', cursor: 'pointer', borderBottom: i < 4 ? `0.5px solid ${theme.borderSubtle}` : 'none' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <span style={{ fontSize: 20 }}>{lang.flag}</span>
-                    <span style={{ fontSize: 15, color: '#fff' }}>{lang.label}</span>
+                    <span style={{ fontSize: 15, color: theme.text }}>{lang.label}</span>
                   </div>
                   {selectedLanguage === lang.label && <span style={{ color: '#1D9E75', fontSize: 18, fontWeight: 700 }}>✓</span>}
                 </div>
@@ -683,7 +677,7 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
             <SettingsGroup label="Import">
               <SettingsRow icon="📥" label="Import Data" onPress={() => alert('Import coming soon')} last />
             </SettingsGroup>
-            <div style={{ fontSize: 12, color: '#555', padding: '12px 20px', lineHeight: 1.5 }}>
+            <div style={{ fontSize: 12, color: theme.textSecondary, padding: '12px 20px', lineHeight: 1.5 }}>
               Export your workout history as a JSON file. Import feature coming soon.
             </div>
           </SettingsScreen>
@@ -718,10 +712,10 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
             <SettingsGroup label="App Info">
               <div style={{ padding: '20px', textAlign: 'center' }}>
                 <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 4 }}>
-                  <span style={{ color: '#fff' }}>Gerak</span><span style={{ color: '#1D9E75' }}>Fit</span>
+                  <span style={{ color: theme.text }}>Gerak</span><span style={{ color: '#1D9E75' }}>Fit</span>
                 </div>
-                <div style={{ fontSize: 13, color: '#555', marginBottom: 2 }}>Version 1.0.0 (Build 1)</div>
-                <div style={{ fontSize: 12, color: '#444', marginBottom: 12 }}>© 2025 GerakFit. All rights reserved.</div>
+                <div style={{ fontSize: 13, color: theme.textSecondary, marginBottom: 2 }}>Version 1.0.0 (Build 1)</div>
+                <div style={{ fontSize: 12, color: theme.textTertiary, marginBottom: 12 }}>© 2025 GerakFit. All rights reserved.</div>
                 <a href="https://gerak-fit.vercel.app" target="_blank" rel="noreferrer" style={{ fontSize: 13, color: '#1D9E75', textDecoration: 'none' }}>
                   gerak-fit.vercel.app
                 </a>
@@ -733,21 +727,21 @@ export default function ProfileScreen({ onNavigate, activeTab }: Props) {
       </div>
 
       {/* Bottom tab bar — always visible */}
-      <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-around', alignItems: 'center', background: '#0d0d0d', borderTop: '0.5px solid #1a1a1a', padding: '8px 0 20px', position: 'relative', zIndex: 50 }}>
-        <button onClick={() => onNavigate('dashboard')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: activeTab === 'dashboard' ? '#1D9E75' : '#555555' }}>
+      <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'space-around', alignItems: 'center', background: theme.tabBarBackground, borderTop: `0.5px solid ${theme.borderSubtle}`, padding: '8px 0 20px', position: 'relative', zIndex: 50 }}>
+        <button onClick={() => onNavigate('dashboard')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: activeTab === 'dashboard' ? '#1D9E75' : theme.textTertiary }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
             <polyline points="9 22 9 12 15 12 15 22"/>
           </svg>
           <span style={{ fontSize: 11, fontWeight: 500 }}>Home</span>
         </button>
-        <button onClick={() => onNavigate('programs')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: activeTab === 'programs' ? '#1D9E75' : '#555555' }}>
+        <button onClick={() => onNavigate('programs')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: activeTab === 'programs' ? '#1D9E75' : theme.textTertiary }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 4v16M18 4v16M8 4h-4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h4M8 18h-4a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h4M16 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-4M16 18h4a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-4M8 12h8"/>
           </svg>
           <span style={{ fontSize: 11, fontWeight: 500 }}>Workout</span>
         </button>
-        <button style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: activeTab === 'profile' ? '#1D9E75' : '#555555' }}>
+        <button style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: activeTab === 'profile' ? '#1D9E75' : theme.textTertiary }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
             <circle cx="12" cy="7" r="4"/>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { SyncStatus } from '../lib/sync'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../theme/ThemeContext'
 
 interface Profile {
   full_name: string | null
@@ -33,7 +34,6 @@ interface WeeklyStats {
   targetDays: number
 }
 
-
 const GOAL_LABELS: Record<string, string> = {
   muscle_gain: 'Build muscle',
   fat_loss: 'Lose fat',
@@ -55,6 +55,7 @@ interface Props {
 }
 
 export default function DashboardScreen({ onStartWorkout, onOpenAnalytics: _onOpenAnalytics, onOpenProfile, onOpenPrograms, onOpenAISummary, onOpenDailyChallenge, syncStatus }: Props) {
+  const { theme } = useTheme()
   const { user } = useAuth()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>([])
@@ -62,14 +63,8 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics: _onOp
   const [weeklyStats, setWeeklyStats] = useState<WeeklyStats>({ sessionsThisWeek: 0, targetDays: 3 })
   const [activeNav, setActiveNav] = useState('dashboard')
   const [loading, setLoading] = useState(true)
-  const [darkMode] = useState(() => localStorage.getItem('gerakfit-dark') !== 'false')
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const today = new Date()
-
-  useEffect(() => {
-    document.body.style.background = darkMode ? '#0d0d0d' : '#f9fafb'
-    localStorage.setItem('gerakfit-dark', String(darkMode))
-  }, [darkMode])
 
   useEffect(() => {
     if (user) loadDashboard()
@@ -127,15 +122,6 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics: _onOp
     return 'Good evening'
   }
 
-  const D = darkMode
-  const bg = D ? '#0d0d0d' : '#f9fafb'
-  const card = D ? '#1c1c1e' : '#fff'
-  const border = D ? '#2a2a2a' : '#e5e7eb'
-  const textPrimary = D ? '#f9fafb' : '#111827'
-  const textSecondary = D ? '#888888' : '#6b7280'
-  const textTertiary = D ? '#666666' : '#9ca3af'
-  const surfaceBg = D ? '#2a2a2a' : '#f3f4f6'
-
   const firstName = profile?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'there'
   const weekProgress = Math.min(weeklyStats.sessionsThisWeek / weeklyStats.targetDays, 1)
 
@@ -149,24 +135,24 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics: _onOp
   })
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: bg, fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: theme.background, fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '22px', fontWeight: 700, color: textPrimary }}>Gerak<span style={{ color: '#1D9E75' }}>Fit</span></div>
-        <div style={{ fontSize: '13px', color: textTertiary, marginTop: '8px' }}>Loading...</div>
+        <div style={{ fontSize: '22px', fontWeight: 700, color: theme.text }}>Gerak<span style={{ color: '#1D9E75' }}>Fit</span></div>
+        <div style={{ fontSize: '13px', color: theme.textTertiary, marginTop: '8px' }}>Loading...</div>
       </div>
     </div>
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: bg, fontFamily: 'system-ui, sans-serif', paddingBottom: '80px' }}>
+    <div style={{ minHeight: '100vh', background: theme.background, fontFamily: 'system-ui, sans-serif', paddingBottom: '80px' }}>
 
       {/* Header */}
-      <div style={{ background: card, borderBottom: `0.5px solid ${border}`, padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.5px', color: textPrimary }}>
+      <div style={{ background: theme.card, borderBottom: `0.5px solid ${theme.border}`, padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-0.5px', color: theme.text }}>
           Gerak<span style={{ color: '#1D9E75' }}>Fit</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ fontSize: '12px', color: textSecondary, background: surfaceBg, padding: '4px 10px', borderRadius: '20px' }}>
+          <div style={{ fontSize: '12px', color: theme.textSecondary, background: theme.border, padding: '4px 10px', borderRadius: '20px' }}>
             {GOAL_LABELS[profile?.goal ?? ''] ?? 'No goal set'}
           </div>
         </div>
@@ -176,30 +162,30 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics: _onOp
 
         {/* Greeting */}
         <div style={{ marginBottom: '20px' }}>
-          <div style={{ fontSize: '11px', color: '#666666', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>{getGreeting()}</div>
-          <div style={{ fontSize: '28px', fontWeight: 800, color: textPrimary, letterSpacing: '-0.5px' }}>{firstName}</div>
-          <div style={{ fontSize: '13px', color: textSecondary, marginTop: '2px' }}>
+          <div style={{ fontSize: '11px', color: theme.textTertiary, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>{getGreeting()}</div>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: theme.text, letterSpacing: '-0.5px' }}>{firstName}</div>
+          <div style={{ fontSize: '13px', color: theme.textSecondary, marginTop: '2px' }}>
             {today.toLocaleDateString('en-MY', { weekday: 'long', day: 'numeric', month: 'long' })}
           </div>
         </div>
 
         {/* Weekly progress */}
-        <div style={{ background: card, border: `0.5px solid ${border}`, borderRadius: '14px', padding: '20px', marginBottom: '16px' }}>
+        <div style={{ background: theme.card, border: `0.5px solid ${theme.border}`, borderRadius: '14px', padding: '20px', marginBottom: '16px' }}>
           <div style={{ marginBottom: '14px' }}>
-            <div style={{ fontSize: '13px', color: textSecondary, fontWeight: 500 }}>This week</div>
+            <div style={{ fontSize: '13px', color: theme.textSecondary, fontWeight: 500 }}>This week</div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap', marginTop: '2px' }}>
-              <span style={{ fontSize: '52px', fontWeight: 800, color: textPrimary, letterSpacing: '-2px', lineHeight: 1 }}>{weeklyStats.sessionsThisWeek}</span>
-              <span style={{ fontSize: '16px', fontWeight: 400, color: '#9ca3af' }}> /{weeklyStats.targetDays} sessions</span>
+              <span style={{ fontSize: '52px', fontWeight: 800, color: theme.text, letterSpacing: '-2px', lineHeight: 1 }}>{weeklyStats.sessionsThisWeek}</span>
+              <span style={{ fontSize: '16px', fontWeight: 400, color: theme.textTertiary }}> /{weeklyStats.targetDays} sessions</span>
             </div>
           </div>
-          <div style={{ background: surfaceBg, borderRadius: '4px', height: '3px', marginBottom: '14px' }}>
+          <div style={{ background: theme.border, borderRadius: '4px', height: '3px', marginBottom: '14px' }}>
             <div style={{ background: '#1D9E75', height: '3px', borderRadius: '4px', width: `${weekProgress * 100}%`, transition: 'width 0.5s' }} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
             {weekDays.map((d, i) => (
               <div key={i} style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '10px', color: d.isToday ? '#1D9E75' : textTertiary, fontWeight: d.isToday ? 600 : 400, marginBottom: '4px' }}>{d.label}</div>
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', margin: '0 auto', background: d.hasSession ? '#1D9E75' : d.isToday ? (D ? '#064e3b' : '#E1F5EE') : surfaceBg, border: d.isToday ? '2px solid #1D9E75' : '2px solid transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ fontSize: '10px', color: d.isToday ? '#1D9E75' : theme.textTertiary, fontWeight: d.isToday ? 600 : 400, marginBottom: '4px' }}>{d.label}</div>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', margin: '0 auto', background: d.hasSession ? '#1D9E75' : d.isToday ? theme.primaryMuted : theme.border, border: d.isToday ? '2px solid #1D9E75' : '2px solid transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {d.hasSession && <span style={{ color: '#fff', fontSize: '12px' }}>✓</span>}
                 </div>
               </div>
@@ -209,9 +195,9 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics: _onOp
 
         {/* Sync status */}
         {syncStatus && syncStatus !== 'idle' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '8px', background: syncStatus === 'syncing' ? surfaceBg : syncStatus === 'success' ? (D ? '#064e3b' : '#E1F5EE') : syncStatus === 'offline' ? '#fef9c3' : '#fef2f2', marginBottom: '12px' }}>
-            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: syncStatus === 'syncing' ? '#9ca3af' : syncStatus === 'success' ? '#1D9E75' : syncStatus === 'offline' ? '#d97706' : '#ef4444' }} />
-            <span style={{ fontSize: '12px', color: syncStatus === 'syncing' ? textSecondary : syncStatus === 'success' ? '#085041' : syncStatus === 'offline' ? '#92400e' : '#991b1b' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '8px', background: syncStatus === 'syncing' ? theme.border : syncStatus === 'success' ? theme.primaryMuted : syncStatus === 'offline' ? '#fef9c3' : theme.dangerMuted, marginBottom: '12px' }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: syncStatus === 'syncing' ? theme.textTertiary : syncStatus === 'success' ? '#1D9E75' : syncStatus === 'offline' ? '#d97706' : '#ef4444' }} />
+            <span style={{ fontSize: '12px', color: syncStatus === 'syncing' ? theme.textSecondary : syncStatus === 'success' ? '#085041' : syncStatus === 'offline' ? '#92400e' : '#991b1b' }}>
               {syncStatus === 'syncing' ? 'Syncing...' : syncStatus === 'success' ? 'All synced' : syncStatus === 'offline' ? 'Offline — saved locally' : 'Sync error'}
             </span>
           </div>
@@ -224,7 +210,7 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics: _onOp
 
         {/* AI Summary + Daily Challenge row */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-          <button onClick={onOpenAISummary} style={{ flex: 1, padding: '11px 8px', borderRadius: '12px', background: card, border: `0.5px solid ${border}`, color: textPrimary, fontSize: '12px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+          <button onClick={onOpenAISummary} style={{ flex: 1, padding: '11px 8px', borderRadius: '12px', background: theme.card, border: `0.5px solid ${theme.border}`, color: theme.text, fontSize: '12px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
             <span>✦</span> AI weekly summary
           </button>
           <button onClick={onOpenDailyChallenge} style={{ flex: 1, padding: '11px 8px', borderRadius: '12px', background: '#0f2027', border: '0.5px solid #1D9E75', color: '#1D9E75', fontSize: '12px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
@@ -238,29 +224,29 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics: _onOp
             { label: 'Total sessions', value: recentSessions.filter(s => s.status === 'completed').length, sub: 'all time' },
             { label: 'Personal records', value: prs.length, sub: 'recorded' },
           ].map(stat => (
-            <div key={stat.label} style={{ background: card, border: `0.5px solid ${border}`, borderRadius: '14px', padding: '20px' }}>
-              <div style={{ fontSize: '10px', color: textTertiary, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{stat.label}</div>
-              <div style={{ fontSize: '36px', fontWeight: 800, color: textPrimary, marginTop: '4px' }}>{stat.value}</div>
-              <div style={{ fontSize: '11px', color: textSecondary, marginTop: '2px' }}>{stat.sub}</div>
+            <div key={stat.label} style={{ background: theme.card, border: `0.5px solid ${theme.border}`, borderRadius: '14px', padding: '20px' }}>
+              <div style={{ fontSize: '10px', color: theme.textTertiary, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{stat.label}</div>
+              <div style={{ fontSize: '36px', fontWeight: 800, color: theme.text, marginTop: '4px' }}>{stat.value}</div>
+              <div style={{ fontSize: '11px', color: theme.textSecondary, marginTop: '2px' }}>{stat.sub}</div>
             </div>
           ))}
         </div>
 
         {/* Recent PRs */}
         {prs.length > 0 && (
-          <div style={{ background: card, border: `0.5px solid ${border}`, borderRadius: '14px', padding: '20px', marginBottom: '16px' }}>
-            <div style={{ fontSize: '13px', fontWeight: 600, color: textPrimary, marginBottom: '12px' }}>Recent PRs</div>
+          <div style={{ background: theme.card, border: `0.5px solid ${theme.border}`, borderRadius: '14px', padding: '20px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: theme.text, marginBottom: '12px' }}>Recent PRs</div>
             {prs.map(pr => (
-              <div key={pr.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '10px', marginBottom: '10px', borderBottom: `0.5px solid ${border}` }}>
+              <div key={pr.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '10px', marginBottom: '10px', borderBottom: `0.5px solid ${theme.border}` }}>
                 <div>
-                  <div style={{ fontSize: '13px', fontWeight: 500, color: textPrimary }}>{pr.exercises?.name ?? '—'}</div>
-                  <div style={{ fontSize: '11px', color: textTertiary, marginTop: '1px' }}>{formatDate(pr.achieved_at)}</div>
+                  <div style={{ fontSize: '13px', fontWeight: 500, color: theme.text }}>{pr.exercises?.name ?? '—'}</div>
+                  <div style={{ fontSize: '11px', color: theme.textTertiary, marginTop: '1px' }}>{formatDate(pr.achieved_at)}</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: '13px', fontWeight: 600, color: '#1D9E75' }}>
                     {pr.weight_kg ? `${pr.weight_kg} kg` : ''}{pr.weight_kg && pr.reps ? ' × ' : ''}{pr.reps ? `${pr.reps} reps` : ''}
                   </div>
-                  <div style={{ fontSize: '10px', color: textTertiary, marginTop: '1px', textTransform: 'capitalize' }}>{pr.record_type.replace(/_/g, ' ')}</div>
+                  <div style={{ fontSize: '10px', color: theme.textTertiary, marginTop: '1px', textTransform: 'capitalize' }}>{pr.record_type.replace(/_/g, ' ')}</div>
                 </div>
               </div>
             ))}
@@ -268,33 +254,33 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics: _onOp
         )}
 
         {/* Recent sessions */}
-        <div style={{ background: card, border: `0.5px solid ${border}`, borderRadius: '14px', padding: '20px' }}>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: textPrimary, marginBottom: '12px' }}>Recent sessions</div>
+        <div style={{ background: theme.card, border: `0.5px solid ${theme.border}`, borderRadius: '14px', padding: '20px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 600, color: theme.text, marginBottom: '12px' }}>Recent sessions</div>
           {recentSessions.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '20px 0', fontSize: '13px', color: textTertiary }}>No sessions yet. Start your first workout!</div>
+            <div style={{ textAlign: 'center', padding: '20px 0', fontSize: '13px', color: theme.textTertiary }}>No sessions yet. Start your first workout!</div>
           ) : (
             recentSessions.slice(0, 5).map(session => (
               <div key={session.id}>
                 {deleteConfirm === session.id ? (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `0.5px solid ${border}` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `0.5px solid ${theme.border}` }}>
                     <span style={{ fontSize: '13px', color: '#ef4444' }}>Delete this session?</span>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button onClick={() => setDeleteConfirm(null)} style={{ padding: '4px 10px', borderRadius: '6px', border: `0.5px solid ${border}`, background: card, color: textSecondary, fontSize: '12px', cursor: 'pointer' }}>Cancel</button>
+                      <button onClick={() => setDeleteConfirm(null)} style={{ padding: '4px 10px', borderRadius: '6px', border: `0.5px solid ${theme.border}`, background: theme.card, color: theme.textSecondary, fontSize: '12px', cursor: 'pointer' }}>Cancel</button>
                       <button onClick={() => deleteSession(session.id)} style={{ padding: '4px 10px', borderRadius: '6px', border: 'none', background: '#ef4444', color: '#fff', fontSize: '12px', cursor: 'pointer' }}>Delete</button>
                     </div>
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '10px', marginBottom: '10px', borderBottom: `0.5px solid ${border}` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '10px', marginBottom: '10px', borderBottom: `0.5px solid ${theme.border}` }}>
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: 600, color: textPrimary }}>Workout</div>
-                      <div style={{ fontSize: '11px', color: textTertiary, marginTop: '1px' }}>{formatDate(session.workout_date)}</div>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: theme.text }}>Workout</div>
+                      <div style={{ fontSize: '11px', color: theme.textTertiary, marginTop: '1px' }}>{formatDate(session.workout_date)}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{ fontSize: '13px', color: textSecondary }}>{formatDuration(session.duration_seconds)}</div>
-                      <div style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 500, background: session.status === 'completed' ? (D ? '#064e3b' : '#E1F5EE') : '#fef9c3', color: session.status === 'completed' ? '#1D9E75' : '#854d0e' }}>
+                      <div style={{ fontSize: '13px', color: theme.textSecondary }}>{formatDuration(session.duration_seconds)}</div>
+                      <div style={{ padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 500, background: session.status === 'completed' ? theme.primaryMuted : '#fef9c3', color: session.status === 'completed' ? '#1D9E75' : '#854d0e' }}>
                         {session.status}
                       </div>
-                      <button onClick={() => setDeleteConfirm(session.id)} style={{ padding: '2px 8px', borderRadius: '6px', border: `1px solid ${D ? '#4b5563' : '#fee2e2'}`, background: 'transparent', color: '#ef4444', fontSize: '11px', cursor: 'pointer' }}>×</button>
+                      <button onClick={() => setDeleteConfirm(session.id)} style={{ padding: '2px 8px', borderRadius: '6px', border: `1px solid ${theme.dangerMuted}`, background: 'transparent', color: '#ef4444', fontSize: '11px', cursor: 'pointer' }}>×</button>
                     </div>
                   </div>
                 )}
@@ -306,21 +292,21 @@ export default function DashboardScreen({ onStartWorkout, onOpenAnalytics: _onOp
       </div>
 
       {/* Bottom nav */}
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#0d0d0d', borderTop: '0.5px solid #1a1a1a', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '8px 0 20px', zIndex: 50 }}>
-        <button onClick={() => setActiveNav('dashboard')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: activeNav === 'dashboard' ? '#1D9E75' : '#555555' }}>
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: theme.tabBarBackground, borderTop: `0.5px solid ${theme.borderSubtle}`, display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '8px 0 20px', zIndex: 50 }}>
+        <button onClick={() => setActiveNav('dashboard')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: activeNav === 'dashboard' ? '#1D9E75' : theme.textTertiary }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
             <polyline points="9 22 9 12 15 12 15 22"/>
           </svg>
           <span style={{ fontSize: 11, fontWeight: 500 }}>Home</span>
         </button>
-        <button onClick={onOpenPrograms} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: activeNav === 'workout' ? '#1D9E75' : '#555555' }}>
+        <button onClick={onOpenPrograms} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: activeNav === 'workout' ? '#1D9E75' : theme.textTertiary }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 4v16M18 4v16M8 4h-4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h4M8 18h-4a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h4M16 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-4M16 18h4a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-4M8 12h8"/>
           </svg>
           <span style={{ fontSize: 11, fontWeight: 500 }}>Workout</span>
         </button>
-        <button onClick={onOpenProfile} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: activeNav === 'profile' ? '#1D9E75' : '#555555' }}>
+        <button onClick={onOpenProfile} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '4px 20px', color: activeNav === 'profile' ? '#1D9E75' : theme.textTertiary }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
             <circle cx="12" cy="7" r="4"/>
